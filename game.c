@@ -26,7 +26,6 @@ int debug(char* fmt, ...) {
 
 typedef struct piece {
   char player;  // ["[B]lack", "[W]hite"]
-  char alive;   // ["[T]rue",  "[F]alse"]
   char lady;    // ["[T]rue",  "[F]alse"]
 } Piece;
 
@@ -123,12 +122,6 @@ void printState() {
   debug("==> Pieces\n");
   for (i = 0; i < 24; i++) {
     debug("%c ", pieces[i].player);
-  }
-  debug("\n");
-
-  debug("==> Alive\n");
-  for (i = 0; i < 24; i++) {
-    debug("%d ", pieces[i].alive);
   }
   debug("\n");
 
@@ -267,7 +260,6 @@ void init() {
   for (i = 0; i < 12; i++) {
     pieces[i].player = 'B';
     pieces[i + 12].player = 'W';
-    pieces[i].alive = pieces[i + 12].alive = 1;
     pieces[i].lady = pieces[i + 12].lady = 0;
   }
 
@@ -329,12 +321,12 @@ char tryMove(char up) {
   }
   
   if (!trySimpleMove(up)) {
-    printf("LOG: Simple Move\n");
+    debug("LOG: Simple Move\n");
     return 0;
   }
 
   if (!tryCapture(up)) {
-    printf("LOG: Capture [%s]\n", getCurrentPlayer());
+    debug("LOG: Capture [%s]\n", getCurrentPlayer());
     return 0;
   }
   
@@ -367,8 +359,8 @@ void multipleCapture() {
 }
 
 char move() {
-  printf("LOG: Piece [%d, %d]\n", px, py);
-  printf("LOG: Move  [%d, %d]\n", mx, my);
+  debug("LOG: Piece [%d, %d]\n", px, py);
+  debug("LOG: Move  [%d, %d]\n", mx, my);
   if (isBounded()) {
     char id = board[px][py];
     if (id == 0) {
