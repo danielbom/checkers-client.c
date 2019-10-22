@@ -1,7 +1,7 @@
 
 ## **Checkers game**
 
-Basic checkers game white in C. Estimated time spend: 8 hours, not continuos. 
+Basic checkers game write in C. Estimated time spend: 8 hours (not continuos). 
 
 ### **Compile and run**
 > gcc game.c -o game && ./game
