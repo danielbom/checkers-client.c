@@ -233,6 +233,8 @@ void printErrors() {
     case 7:
       debug("Message: Illegal lady capture\n");
       break;
+    case 8:
+      debug("Message: Malformad input\n");
   }
   error = 0;
 }
@@ -285,6 +287,7 @@ char tryCapture(char up) {
   char id = board[px][py];
   char p1 = up ? px - 1 : px + 1;
   char p2 = up ? px - 2 : px + 2;
+  debug("ID: [%d] P1 [%d] P2 [%d]\n", id, p1, p2);
   if (p2 == mx) {
     if (py + 2 == my) {
       if (pieces[board[p1][py + 1] - 1].player != currentPlayer) {
@@ -334,31 +337,45 @@ char tryMove(char up) {
   return 1;
 }
 
-void multipleCapture() {
+char multipleCapture() {
+  if (error) return 1;
   int n = indexOfTh(buffer, ' ', 2);
-  int shift = n;
-  while (error == 0 && n != -1) {
+  int shift = 0;
+  while (n != -1) {
+    shift += n + 1;
     drawBoard();
     sleep(sleepTime);
     printf("\nPlayer [ %s ]\n\n", getCurrentPlayer());
     px = mx; 
     py = my;
+    debug("LOG: Input [%s]\n", buffer + shift);
     if(sscanf(buffer + shift, "%d,%d", &mx, &my) == 2) {
+      debug("LOG: Piece [%d, %d]\n", px, py);
+      debug("LOG: Move  [%d, %d]\n", mx, my);
       if (isBounded()) {
-        tryCapture(1);
-        tryCapture(0);
-        error = 0;
+        if (!tryCapture(1) || !tryCapture(0)) {
+          debug("LOG: Capture [%s]\n", getCurrentPlayer());
+          error = 0;
+        } else {
+          error = 4;
+          return 1;
+        }
       } else {
         error = 1;
+        return 1;
       }
+    } else {
+      error = 8;
+      return 1;
     }
-
-    n = indexOfTh(buffer + shift + 1, ' ', 1);
-    shift += n;
+    
+    n = indexOfTh(buffer + shift, ' ', 1);
   }
+  return 0;
 }
 
 char move() {
+  if (error) return 1;
   debug("LOG: Piece [%d, %d]\n", px, py);
   debug("LOG: Move  [%d, %d]\n", mx, my);
   if (isBounded()) {
@@ -402,7 +419,9 @@ void getInput() {
   printf("Player [ %s ]\n", getCurrentPlayer());
   printf("Move px,py mx,my ...: ");
   scanf("%[^\n]", buffer);
-  sscanf(buffer, "%d,%d %d,%d", &px, &py, &mx, &my);
+  if (sscanf(buffer, "%d,%d %d,%d", &px, &py, &mx, &my) != 4) {
+    error = 8;
+  }
   printf("\n");
 }
 
