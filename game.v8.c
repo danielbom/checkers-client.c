@@ -101,7 +101,7 @@ int indexOfTh(char* str, char ch, int th) {
 }
 
 void checkLady(int mx, int my) {
-  if (mx == 0 || mx == 7) {
+  if (mx == 0 || mx == 8) {
     pieces[board[mx][my] - 1].lady = 1;
   }
 }
@@ -343,14 +343,13 @@ char multipleCapture() {
   int shift = 0;
   while (n != -1) {
     shift += n + 1;
+    drawBoard();
+    sleep(sleepTime);
+    printf("\nPlayer [ %s ]\n\n", getCurrentPlayer());
     px = mx; 
     py = my;
     debug("LOG: Input [%s]\n", buffer + shift);
     if(sscanf(buffer + shift, "%d,%d", &mx, &my) == 2) {
-      drawBoard();
-      printf("\nPlayer [ %s ]\n", getCurrentPlayer());
-      sleep(sleepTime);
-      printf("Move px,py mx,my ...: %d,%d %d,%d\n", px,py, mx, my);
       debug("LOG: Piece [%d, %d]\n", px, py);
       debug("LOG: Move  [%d, %d]\n", mx, my);
       if (isBounded()) {
