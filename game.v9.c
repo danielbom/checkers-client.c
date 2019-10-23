@@ -115,21 +115,6 @@ void swapPlayer() {
 }
 
 // ------------------- //
-//     Persistence     //
-// ------------------- //
-void saveCurrentMove() {
-  char filename[] = "moves.txt";
-  FILE* file = fopen(filename, "a+");
-  if (file == NULL) {
-    debug("Não foi possível abrir o arquivo %s\n", filename);
-  }
-
-  fprintf(file, "%s\n", buffer);
-
-  fclose(file);
-}
-
-// ------------------- //
 //      Printers       //
 // ------------------- //
 void printState() {
