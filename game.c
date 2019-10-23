@@ -1,11 +1,12 @@
 #include <stdio.h>    // printf, scanf, ...
 #include <unistd.h>   // sleep(int)
 #include <stdarg.h>   // va_list
+#include "colorize.c"
 
 int debug(char* fmt, ...) {
+  int res = 0;
 #if DEBUG
   // https://stackoverflow.com/questions/150543/forward-an-invocation-of-a-variadic-function-in-c
-  int res;
 
   /* Declare a va_list type variable */
   va_list myargs;
@@ -20,8 +21,8 @@ int debug(char* fmt, ...) {
   /* Clean up the va_list */
   va_end(myargs);
 
-  return res;
 #endif
+  return res;
 }
 
 typedef struct piece {
@@ -37,6 +38,8 @@ Piece pieces[24];
 char deadBlacks, deadWhites;  // Dead pieces counters
 
 char currentPlayer = 'B'; // ["[B]lack", "[W]hite"]
+char *MOVE_COLOR = REVERSE_COLOR;
+int countMoves = 0;
 char error = 0;
 int sleepTime = 1; // Seconds
 int px, py, mx, my;
@@ -119,7 +122,7 @@ void swapPlayer() {
 // ------------------- //
 void saveCurrentMove() {
   char filename[] = "moves.txt";
-  FILE* file = fopen(filename, "a+");
+  FILE* file = fopen(filename, countMoves == 1 ? "w+" : "a+");
   if (file == NULL) {
     debug("Não foi possível abrir o arquivo %s\n", filename);
   }
@@ -194,25 +197,32 @@ void drawBoard() {
         printf("   |");
       }
       for (j = 0; j < 8; j++) {
+        if ((px == i && py == j) || (mx == i && my == j))
+          printf("%s", MOVE_COLOR);
+
         if (board[i][j] == 0) {
-          printf("%s|", (j + i) % 2 == 0 ? emptyEven[k] : emptyOdd[k]);
+          printf("%s", (j + i) % 2 == 0 ? emptyEven[k] : emptyOdd[k]);
         } else {
           id = board[i][j] - 1;
           player = pieces[id].player;
           if (pieces[id].lady) {
             if (player == 'B') {
-              printf("%s|", blackLady[k]);
+              printf("%s", blackLady[k]);
             } else {
-              printf("%s|", whiteLady[k]);
+              printf("%s", whiteLady[k]);
             }
           } else {
             if (player == 'B') {
-              printf("%s|", blackPiece[k]);
+              printf("%s", blackPiece[k]);
             } else {
-              printf("%s|", whitePiece[k]);
+              printf("%s", whitePiece[k]);
             }
           }
         }
+
+        if ((px == i && py == j) || (mx == i && my == j))
+          printf("%s", RESET_COLOR);
+        printf("|");
       }
       printf("\n");
     }
@@ -224,7 +234,7 @@ void drawBoard() {
 
 void printErrors() {
   if (error >= 1)
-    debug("ERROR: Piece(%d,%d) Move(%d,%d) Player(%s)\n\t", px, py, mx, my, getCurrentPlayer());
+    debug("ERROR: Piece(%d,%d) Move(%d,%d) Player(%s) CurrentMove(%d)\n\t", px, py, mx, my, getCurrentPlayer(), countMoves);
 
   switch (error) {
     case 1:
@@ -280,7 +290,8 @@ void init() {
     pieces[i].lady = pieces[i + 12].lady = 0;
   }
 
-  deadBlacks = deadWhites = 0;
+  countMoves = deadBlacks = deadWhites = 0;
+  px = py = mx = my = -1;
 }
 
 char trySimpleMove(char up) {
@@ -357,6 +368,7 @@ char multipleCapture() {
   int n = indexOfTh(buffer, ' ', 2);
   int shift = 0;
   while (n != -1) {
+    countMoves++;
     shift += n + 1;
     px = mx; 
     py = my;
@@ -432,7 +444,7 @@ char move() {
 
 void getInput() {
   setbuf(stdin , NULL);
-  printf("Player [ %s ]\n", getCurrentPlayer());
+  printf("[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
   printf("Move px,py mx,my ...: ");
   scanf("%[^\n]", buffer);
   if (sscanf(buffer, "%d,%d %d,%d", &px, &py, &mx, &my) != 4) {
@@ -447,6 +459,7 @@ void play() {
   multipleCapture();
 
   if (error == 0) {
+    countMoves++;
     saveCurrentMove();
     swapPlayer();
     checkLady(mx, my);
