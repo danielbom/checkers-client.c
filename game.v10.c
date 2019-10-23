@@ -38,18 +38,12 @@ Piece pieces[24];
 char deadBlacks, deadWhites;  // Dead pieces counters
 
 char currentPlayer = 'B'; // ["[B]lack", "[W]hite"]
-
 char *MOVE_COLOR = REVERSE_COLOR;
-int SLEEP_TIME = 1; // Seconds
-
 int countMoves = 0;
-int LIMIT_MOVES = 80;
-
-char error;
-
+char error = 0;
+int sleepTime = 1; // Seconds
 int px, py, mx, my;
 char buffer[256] = {0};
-int shift;
 
 // ------------------- //
 //        Assets       //
@@ -80,9 +74,9 @@ char emptyOdd[3][7] = {
   "      ",
 };
 char emptyEven[3][7] = {
-  "      ",
-  "      ",
-  "      ",
+  "......",
+  "......",
+  "......",
 };
 
 // ------------------- //
@@ -121,12 +115,6 @@ char isBounded() {
 
 void swapPlayer() {
   currentPlayer = currentPlayer == 'B' ? 'W' : 'B';
-}
-
-int getCoordinate(char *input) {
-  px = mx;
-  py = my;
-  return sscanf(input, "%d,%d", &mx, &my);
 }
 
 // ------------------- //
@@ -241,36 +229,7 @@ void drawBoard() {
     printDiv();
   }
 
-  if (px != -1) {
-    printf("\n");
-    printf("[%d] Last move of [%s] (%d,%d) -> (%d,%d)\n", countMoves, getCurrentPlayer(), px, py, mx, my);
-  }
-
   printState();
-}
-
-void drawResult() {
-  printf("\n\n");
-  if (deadWhites < deadBlacks) {
-    printf(" __    __ __  __ __ ______  ____    __    __ __ __  __  __  __ __ __ \n");
-    printf(" ||    || ||  || || | || | ||       ||    || || ||\\ || (( \\ || || || \n");
-    printf(" \\\\ /\\ // ||==|| ||   ||   ||==     \\\\ /\\ // || ||\\\\||  \\\\  || || || \n");
-    printf("  \\V/\\V/  ||  || ||   ||   ||___     \\V/\\V/  || || \\|| \\_)) .. .. .. \n");
-    printf("                                                                     \n");
-  } else if (deadBlacks < deadWhites) {
-    printf(" ____  __     ___    ___ __ __    __    __ __ __  __  __  __ __ __ \n");
-    printf(" || )) ||    // \\\\  //   || //    ||    || || ||\\ || (( \\ || || || \n");
-    printf(" ||=)  ||    ||=|| ((    ||<<     \\\\ /\\ // || ||\\\\||  \\\\  || || || \n");
-    printf(" ||_)) ||__| || ||  \\\\__ || \\\\     \\V/\\V/  || || \\|| \\_)) .. .. .. \n");
-    printf("                                                                   \n");
-  } else {
-    printf(" ____   ____   ___  __    __      ___   ___  ___  ___  ____ \n");
-    printf(" || \\\\  || \\\\ // \\\\ ||    ||     // \\\\ // \\\\ ||\\\\//|| ||    \n");
-    printf(" ||  )) ||_// ||=|| \\\\ /\\ //    (( ___ ||=|| || \\/ || ||==  \n");
-    printf(" ||_//  || \\\\ || ||  \\V/\\V/      \\\\_|| || || ||    || ||___ \n");
-    printf("                                                            \n");
-  }
-
 }
 
 void printErrors() {
@@ -331,7 +290,7 @@ void init() {
     pieces[i].lady = pieces[i + 12].lady = 0;
   }
 
-  shift = error = countMoves = deadBlacks = deadWhites = 0;
+  countMoves = deadBlacks = deadWhites = 0;
   px = py = mx = my = -1;
 }
 
@@ -384,18 +343,43 @@ char tryCapture(char up) {
   return 1;
 }
 
-char tryMultipleCapture(char up) {
-  if (tryCapture(up)) return 1;
-  debug("LOG: Capture [%s]\n", getCurrentPlayer());
+char tryMove(char up) {
+  if (board[mx][my] != 0) {
+    error = 4;
+    return 1;
+  }
+  
+  if (!trySimpleMove(up)) {
+    debug("LOG: Simple Move\n");
+    return 0;
+  }
 
+  if (!tryCapture(up)) {
+    debug("LOG: Capture [%s]\n", getCurrentPlayer());
+    return 0;
+  }
+  
+  error = 4;
+  return 1;
+}
+
+char multipleCapture() {
   if (error) return 1;
-
-  int n = indexOfTh(buffer + shift, ' ', 1);
+  int n = indexOfTh(buffer, ' ', 2);
+  int shift = 0;
   while (n != -1) {
-    shift += n + 1;
     countMoves++;
+    shift += n + 1;
+    px = mx; 
+    py = my;
     debug("LOG: Input [%s]\n", buffer + shift);
-    if(getCoordinate(buffer + shift) == 2) {
+    if(sscanf(buffer + shift, "%d,%d", &mx, &my) == 2) {
+      drawBoard();
+      printf("\nPlayer [ %s ]\n", getCurrentPlayer());
+      sleep(sleepTime);
+      printf("Move px,py mx,my ...: %d,%d %d,%d\n", px,py, mx, my);
+      debug("LOG: Piece [%d, %d]\n", px, py);
+      debug("LOG: Move  [%d, %d]\n", mx, my);
       if (isBounded()) {
         if (!tryCapture(1) || !tryCapture(0)) {
           debug("LOG: Capture [%s]\n", getCurrentPlayer());
@@ -408,10 +392,6 @@ char tryMultipleCapture(char up) {
         error = 1;
         return 1;
       }
-      drawBoard();
-      printf("\nPlayer [ %s ]\n", getCurrentPlayer());
-      sleep(SLEEP_TIME);
-      debug("LOG: Piece [%d, %d] -> Move [%d, %d]\n", px, py, mx, my);
     } else {
       error = 8;
       return 1;
@@ -420,26 +400,6 @@ char tryMultipleCapture(char up) {
     n = indexOfTh(buffer + shift, ' ', 1);
   }
   return 0;
-}
-
-char tryMove(char up) {
-  if (board[mx][my] != 0) {
-    error = 4;
-    return 1;
-  }
-  
-  if (!trySimpleMove(up)) {
-    debug("LOG: Simple Move\n");
-    return 0;
-  }
-
-  if (!tryMultipleCapture(up)) {
-    debug("LOG: Capture [%s]\n", getCurrentPlayer());
-    return 0;
-  }
-  
-  error = 4;
-  return 1;
 }
 
 char move() {
@@ -454,15 +414,19 @@ char move() {
     } else {
       if (currentPlayer == pieces[id - 1].player) {
         if (pieces[id - 1].lady) {
-          if (px < mx && !tryMove(0)) return 0;
-          if (px > mx && !tryMove(1)) return 0;
+          if (px < mx && !tryMove(0))
+            return 0;
+          if (px > mx && !tryMove(1))
+            return 0;
           error = 7;
           return 1;
         } else {
           if (currentPlayer == 'B') {
-            if (px < mx && !tryMove(0)) return 0;
+            if (px < mx && !tryMove(0))
+              return 0;
           } else {
-            if (px > mx && !tryMove(1)) return 0;
+            if (px > mx && !tryMove(1))
+              return 0;
           }
         }
         error = 4;
@@ -483,37 +447,34 @@ void getInput() {
   printf("[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
   printf("Move px,py mx,my ...: ");
   scanf("%[^\n]", buffer);
-  shift = indexOfTh(buffer, ' ', 1) + 1;
-  if (shift == -1 || getCoordinate(buffer) != 2 || getCoordinate(buffer + shift) != 2)
+  if (sscanf(buffer, "%d,%d %d,%d", &px, &py, &mx, &my) != 4) {
     error = 8;
+  }
   printf("\n");
-}
-
-void update() {
-  if (error != 0) return;
-
-  countMoves++;
-  saveCurrentMove();
-  swapPlayer();
-  checkLady(mx, my);
-  drawBoard();
 }
 
 void play() {
   getInput();
   move();
-  update();
+  multipleCapture();
+
+  if (error == 0) {
+    countMoves++;
+    saveCurrentMove();
+    swapPlayer();
+    checkLady(mx, my);
+    drawBoard();
+  }
+
   printErrors();
-  sleep(SLEEP_TIME);
+  sleep(sleepTime);
 }
 
 int main(int argc, char const *argv[]) {
   init();
   drawBoard();
-  
-  while (deadBlacks != 12 && deadWhites != 12 && countMoves <= LIMIT_MOVES)
-    play();
-  
-  drawResult();
+  while (deadBlacks != 12 && deadWhites != 12) play();
+  if (deadBlacks == 12) printf("White win!!!\n");
+  if (deadWhites == 12) printf("Black win!!!\n");
   return 0;
 }
