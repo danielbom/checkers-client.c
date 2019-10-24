@@ -124,14 +124,9 @@ void swapPlayer() {
 }
 
 int getCoordinate(char *input) {
-  int coordenate;
-  int res = sscanf(input, "%d", &coordenate);
-
   px = mx;
   py = my;
-  mx = coordenate / 10;
-  my = coordenate % 10;
-  return res;
+  return sscanf(input, "%d,%d", &mx, &my);
 }
 
 // ------------------- //
@@ -194,6 +189,11 @@ void printDiv() {
 
 void drawBoard() {
   int i, j, k, id, player;
+  printf("   |");
+  for (i = 0; i < 8; i++) {
+    printf("   %c  |", '0' + i);
+  }
+  printf("\n");
   printDiv();
   for (i = 0; i < 8; i++) {
     for (k = 0; k < 3; k++) {
@@ -205,17 +205,19 @@ void drawBoard() {
       for (j = 0; j < 8; j++) {
         if ((px == i && py == j) || (mx == i && my == j))
           printf("%s", MOVE_COLOR);
-        
+
         if (board[i][j] == 0) {
           printf("%s", (j + i) % 2 == 0 ? emptyEven[k] : emptyOdd[k]);
         } else {
           id = board[i][j] - 1;
           player = pieces[id].player;
           printf("%s", player == 'B' ? BOLD_BLUE_COLOR : BOLD_GREEN_COLOR);
-          char *piece = pieces[id].lady
-            ? player == 'B' ? blackLady[k] : whiteLady[k]
-            : player == 'B' ? blackPiece[k] : whitePiece[k];
-          printf("%s%s", piece, RESET_COLOR);
+          if (pieces[id].lady) {
+            printf("%s", player == 'B' ? blackLady[k] : whiteLady[k]);
+          } else {
+            printf("%s", player == 'B' ? blackPiece[k] : whitePiece[k]);
+          }
+          printf("%s", RESET_COLOR);
         }
 
         if ((px == i && py == j) || (mx == i && my == j))
@@ -226,15 +228,10 @@ void drawBoard() {
     }
     printDiv();
   }
-  printf("   |");
-  for (i = 0; i < 8; i++) {
-    printf("   %c  |", '0' + i);
-  }
-  printf("\n");
 
   if (px != -1) {
     printf("\n");
-    printf("[%d] Last move (%d,%d) -> (%d,%d) [%s]\n", countMoves - 1, px, py, mx, my, getCurrentPlayer());
+    printf("Last move (%d,%d) -> (%d,%d) [%s]\n", px, py, mx, my, getCurrentPlayer());
   }
 
   printState();
@@ -475,10 +472,10 @@ char move() {
 void getInput() {
   setbuf(stdin , NULL);
   printf("[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
-  printf("Move pxpy mxmy ...:\n");
+  printf("Move px,py mx,my ...:\n");
   scanf("%[^\n]", buffer);
   shift = indexOfTh(buffer, ' ', 1) + 1;
-  if (shift == -1 || getCoordinate(buffer) != 1 || getCoordinate(buffer + shift) != 1)
+  if (shift == -1 || getCoordinate(buffer) != 2 || getCoordinate(buffer + shift) != 2)
     error = 8;
   printf("\n");
 }
