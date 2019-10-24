@@ -61,7 +61,7 @@ char blackPiece[3][7] = {
 };
 char whitePiece[3][7] = {
   " XXXX ",
-  "X    X",
+  "XXXXXX",
   " XXXX "
 };
 char blackLady[3][7] = {
@@ -71,7 +71,7 @@ char blackLady[3][7] = {
 };
 char whiteLady[3][7] = {
   " \\__/ ",
-  "X    X",
+  "XXXXXX",
   " XXXX "
 };
 char emptyOdd[3][7] = {
@@ -393,7 +393,7 @@ char tryMultipleCapture(char up) {
     shift += n + 1;
     countMoves++;
     debug("LOG: Input [%s]\n", buffer + shift);
-    if(getCoordinate(buffer + shift) == 2) {
+    if(getCoordinate(buffer + shift)) {
       if (isBounded()) {
         if (!tryCapture(1) || !tryCapture(0)) {
           debug("LOG: Capture [%s]\n", getCurrentPlayer());
@@ -436,6 +436,9 @@ char tryMove(char up) {
   return 1;
 }
 
+// ------------------- //
+//         Loop        //
+// ------------------- //
 char move() {
   if (error) return 1;
   debug("LOG: Piece [%d, %d]\n", px, py);
@@ -478,7 +481,7 @@ void getInput() {
   printf("Move pxpy mxmy ...:\n");
   scanf("%[^\n]", buffer);
   shift = indexOfTh(buffer, ' ', 1) + 1;
-  if (shift == -1 || getCoordinate(buffer) != 1 || getCoordinate(buffer + shift) != 1)
+  if (shift == -1 || !getCoordinate(buffer) || !getCoordinate(buffer + shift))
     error = 8;
   printf("\n");
 }

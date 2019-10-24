@@ -3,7 +3,10 @@
 
 Basic checkers game write in C.
 
-- 23/10/2019: Estimated time spend: 5 hours (approximately).
+- 24/10/2019: Estimated time spend: ~1 hour.
+  * Simple updates and refactor.
+
+- 23/10/2019: Estimated time spend: ~5 hours.
   * Fix bugs and stylized game.
 
 - 22/10/2019: Estimated time spend: 3 hours (not continuos).
