@@ -149,19 +149,13 @@ void saveCurrentMove() {
 // ------------------- //
 void printState() {
   int i, j;
-  debug("==> Pieces\n");
-  for (i = 0; i < 24; i++) {
-    debug("%c ", pieces[i].player);
-  }
-  debug("\n");
+  debug("==> Pieces: ");
+  for (i = 0; i < 24; i++) debug("%c ", pieces[i].player);
 
-  debug("==> Lady\n");
-  for (i = 0; i < 24; i++) {
-    debug("%d ", pieces[i].lady);
-  }
-  debug("\n");
+  debug("\n==>   Lady: ");
+  for (i = 0; i < 24; i++) debug("%d ", pieces[i].lady);
 
-  debug("==> Board\n");
+  debug("\n==>  Board:\n");
   debug("   ");
   for (i = 0; i < 8; i++) {
     debug("% 3d ", i);
@@ -217,19 +211,13 @@ void drawBoard() {
         } else {
           id = board[i][j] - 1;
           player = pieces[id].player;
+          printf("%s", player == 'B' ? BOLD_BLUE_COLOR : BOLD_GREEN_COLOR);
           if (pieces[id].lady) {
-            if (player == 'B') {
-              printf("%s", blackLady[k]);
-            } else {
-              printf("%s", whiteLady[k]);
-            }
+            printf("%s", player == 'B' ? blackLady[k] : whiteLady[k]);
           } else {
-            if (player == 'B') {
-              printf("%s", blackPiece[k]);
-            } else {
-              printf("%s", whitePiece[k]);
-            }
+            printf("%s", player == 'B' ? blackPiece[k] : whitePiece[k]);
           }
+          printf("%s", RESET_COLOR);
         }
 
         if ((px == i && py == j) || (mx == i && my == j))
@@ -243,7 +231,7 @@ void drawBoard() {
 
   if (px != -1) {
     printf("\n");
-    printf("[%d] Last move of [%s] (%d,%d) -> (%d,%d)\n", countMoves, getCurrentPlayer(), px, py, mx, my);
+    printf("Last move (%d,%d) -> (%d,%d) [%s]\n", px, py, mx, my, getCurrentPlayer());
   }
 
   printState();
@@ -252,12 +240,14 @@ void drawBoard() {
 void drawResult() {
   printf("\n\n");
   if (deadWhites < deadBlacks) {
+    printf("%s", BOLD_GREEN_COLOR);
     printf(" __    __ __  __ __ ______  ____    __    __ __ __  __  __  __ __ __ \n");
     printf(" ||    || ||  || || | || | ||       ||    || || ||\\ || (( \\ || || || \n");
     printf(" \\\\ /\\ // ||==|| ||   ||   ||==     \\\\ /\\ // || ||\\\\||  \\\\  || || || \n");
     printf("  \\V/\\V/  ||  || ||   ||   ||___     \\V/\\V/  || || \\|| \\_)) .. .. .. \n");
     printf("                                                                     \n");
   } else if (deadBlacks < deadWhites) {
+    printf("%s", BOLD_BLUE_COLOR);
     printf(" ____  __     ___    ___ __ __    __    __ __ __  __  __  __ __ __ \n");
     printf(" || )) ||    // \\\\  //   || //    ||    || || ||\\ || (( \\ || || || \n");
     printf(" ||=)  ||    ||=|| ((    ||<<     \\\\ /\\ // || ||\\\\||  \\\\  || || || \n");
@@ -270,7 +260,7 @@ void drawResult() {
     printf(" ||_//  || \\\\ || ||  \\V/\\V/      \\\\_|| || || ||    || ||___ \n");
     printf("                                                            \n");
   }
-
+  printf("%s", RESET_COLOR);
 }
 
 void printErrors() {
