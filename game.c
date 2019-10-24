@@ -382,6 +382,11 @@ char tryMultipleCapture(char up) {
 
   int n = indexOfTh(buffer + shift, ' ', 1);
   while (n != -1) {
+    drawBoard();
+    sleep(SLEEP_TIME);
+    printf("\n\n");
+    debug("LOG: Piece [%d, %d] -> Move [%d, %d]\n", px, py, mx, my);
+  
     shift += n + 1;
     countMoves++;
     debug("LOG: Input [%s]\n", buffer + shift);
@@ -398,10 +403,6 @@ char tryMultipleCapture(char up) {
         error = 1;
         return 1;
       }
-      drawBoard();
-      printf("\nPlayer [ %s ]\n", getCurrentPlayer());
-      sleep(SLEEP_TIME);
-      debug("LOG: Piece [%d, %d] -> Move [%d, %d]\n", px, py, mx, my);
     } else {
       error = 8;
       return 1;
@@ -471,7 +472,7 @@ char move() {
 void getInput() {
   setbuf(stdin , NULL);
   printf("[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
-  printf("Move px,py mx,my ...: ");
+  printf("Move px,py mx,my ...:\n");
   scanf("%[^\n]", buffer);
   shift = indexOfTh(buffer, ' ', 1) + 1;
   if (shift == -1 || getCoordinate(buffer) != 2 || getCoordinate(buffer + shift) != 2)

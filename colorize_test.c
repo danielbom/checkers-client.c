@@ -2,6 +2,8 @@
 #include <stdio.h>
 
 int main() {
+  // http://patorjk.com/software/taag/#p=testall&f=Double&t=Checkers
+  
   printf("%s ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗███████╗██████╗ ███████╗\n", RED_COLOR);
   printf("%s██╔════╝██║  ██║██╔════╝██╔════╝██║ ██╔╝██╔════╝██╔══██╗██╔════╝\n", GREEN_COLOR);
   printf("%s██║     ███████║█████╗  ██║     █████╔╝ █████╗  ██████╔╝███████╗\n", YELLOW_COLOR);
