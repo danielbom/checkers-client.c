@@ -86,8 +86,14 @@ char emptyEven[3][7] = {
 };
 
 // ------------------- //
-//    General Utils    //
+//        Utils        //
 // ------------------- //
+char BLACK[] = "Black";
+char WHITE[] = "White";
+char* getCurrentPlayer() {
+  return currentPlayer == 'B' ? BLACK : WHITE;
+}
+
 int indexOfTh(char* str, char ch, int th) {
   while (*str == ' ') str++; // lstrip
   
@@ -103,17 +109,7 @@ int indexOfTh(char* str, char ch, int th) {
   return -1;
 }
 
-// ------------------- //
-//     Utils Game      //
-// ------------------- //
-char BLACK[] = "Black";
-char WHITE[] = "White";
-char* getCurrentPlayer() {
-  return currentPlayer == 'B' ? BLACK : WHITE;
-}
-
 void checkLady(int mx, int my) {
-  debug("Check Lady Move(%d,%d)\n", mx, my);
   if (mx == 0 || mx == 7) {
     pieces[board[mx][my] - 1].lady = 1;
   }
@@ -127,8 +123,29 @@ void swapPlayer() {
   currentPlayer = currentPlayer == 'B' ? 'W' : 'B';
 }
 
-int isDigit(char ch) {
-  return '0' <= ch && ch <= '9';
+int getCoordinate(char *input) {
+  int coordenate;
+  int res = sscanf(input, "%d", &coordenate);
+
+  px = mx;
+  py = my;
+  mx = coordenate / 10;
+  my = coordenate % 10;
+  return res;
+}
+
+void skipNonDigit() {
+  for (; buffer[shift]; shift++) {
+    if (buffer[shift] >= '0' && buffer[shift] <= '9')
+      break;
+  }
+}
+
+void skipDigit() {
+  for (; buffer[shift]; shift++) {
+    if (buffer[shift] < '0' && buffer[shift] > '9')
+      break;
+  }
 }
 
 void fillBuffer() {
@@ -140,28 +157,6 @@ void fillBuffer() {
 void unimplemented(char* function) {
   printf("[Unimplemented] %s\n", function);
   printf("...\n");
-}
-
-int getCoordinate(int *x, int *y) {
-  debug("Buffer 1: '%s'\n", buffer + shift);
-  for (; buffer[shift] && !isDigit(buffer[shift]); shift++);
-  debug("Buffer 2: '%s'\n", buffer + shift);
-  *x = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;
-  debug("Buffer 3: '%s'\n", buffer + shift);
-  for (; buffer[shift] && !isDigit(buffer[shift]); shift++);
-  debug("Buffer 4: '%s'\n", buffer + shift);
-  *y = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;
-  debug("Buffer 5: '%s'\n", buffer + shift);
-  debug("Coordinate(%d,%d)\n", *x, *y);
-
-  return *x != -1 && *y != -1;
-}
-
-void updateMove(int x, int y) {
-  px = mx;
-  py = my;
-  mx = x;
-  my = y;
 }
 
 // ------------------- //
@@ -411,25 +406,37 @@ char tryMultipleCapture(char up) {
   if (tryCapture(up)) return 1;
   debug("LOG: Capture [%s]\n", getCurrentPlayer());
 
-  int nextX, nextY;
-  while (getCoordinate(&nextX, &nextY)) {
+  if (error) return 1;
+
+  int n = indexOfTh(buffer + shift, ' ', 1);
+  while (n != -1) {
     drawBoard();
     sleep(SLEEP_TIME);
     printf("\n\n");
-    debug("LOG: Capture [%s]\n", getCurrentPlayer());
-    updateMove(nextX, nextY);
-    if (isBounded()) {
-      if (!tryCapture(1) || !tryCapture(0)) {
-        countMoves++;
-        error = 0;
+    debug("LOG: Piece [%d, %d] -> Move [%d, %d]\n", px, py, mx, my);
+  
+    shift += n + 1;
+    countMoves++;
+    debug("LOG: Input [%s]\n", buffer + shift);
+    if(getCoordinate(buffer + shift)) {
+      if (isBounded()) {
+        if (!tryCapture(1) || !tryCapture(0)) {
+          debug("LOG: Capture [%s]\n", getCurrentPlayer());
+          error = 0;
+        } else {
+          error = 4;
+          return 1;
+        }
       } else {
-        error = 4;
+        error = 1;
         return 1;
       }
     } else {
-      error = 1;
+      error = 8;
       return 1;
     }
+    
+    n = indexOfTh(buffer + shift, ' ', 1);
   }
   return 0;
 }
@@ -441,8 +448,8 @@ char tryMove(char up) {
   }
   
   if (!trySimpleMove(up)) {
-      debug("LOG: Simple Move\n");
-      return 0;
+    debug("LOG: Simple Move\n");
+    return 0;
   }
 
   if (!tryMultipleCapture(up)) {
@@ -497,13 +504,13 @@ void getInput() {
   printf("[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
   printf("Move pxpy mxmy ...:\n");
   fillBuffer();
-  if (!getCoordinate(&px, &py) || !getCoordinate(&mx, &my))
+  shift = indexOfTh(buffer, ' ', 1) + 1;
+  if (shift == -1 || !getCoordinate(buffer) || !getCoordinate(buffer + shift))
     error = 8;
   printf("\n");
 }
 
 void update() {
-  shift = 0;    // Flush reader
   if (error != 0) return;
 
   countMoves++;
@@ -519,6 +526,18 @@ void play() {
   update();
   printErrors();
   sleep(SLEEP_TIME);
+}
+
+void logo() {
+  char* color1 = BOLD_BLUE_COLOR;
+  char* color2 = BOLD_GREEN_COLOR;
+  printf("%s ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗███████╗██████╗ ███████╗\n", color1);
+  printf("%s██╔════╝██║  ██║██╔════╝██╔════╝██║ ██╔╝██╔════╝██╔══██╗██╔════╝\n", color2);
+  printf("%s██║     ███████║█████╗  ██║     █████╔╝ █████╗  ██████╔╝███████╗\n", color1);
+  printf("%s██║     ██╔══██║██╔══╝  ██║     ██╔═██╗ ██╔══╝  ██╔══██╗╚════██║\n", color2);
+  printf("%s╚██████╗██║  ██║███████╗╚██████╗██║  ██╗███████╗██║  ██║███████║\n", color1);
+  printf("%s ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝\n", color2);
+  printf("%s                                                                \n", RESET_COLOR);
 }
 
 void playLocalGame() {
@@ -554,18 +573,6 @@ void playLocalMenuOption() {
 }
 void exitMenuOption() {
   unimplemented("Exit");
-}
-
-void logo() {
-  char* color1 = BOLD_BLUE_COLOR;
-  char* color2 = BOLD_GREEN_COLOR;
-  printf("%s ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗███████╗██████╗ ███████╗\n", color1);
-  printf("%s██╔════╝██║  ██║██╔════╝██╔════╝██║ ██╔╝██╔════╝██╔══██╗██╔════╝\n", color2);
-  printf("%s██║     ███████║█████╗  ██║     █████╔╝ █████╗  ██████╔╝███████╗\n", color1);
-  printf("%s██║     ██╔══██║██╔══╝  ██║     ██╔═██╗ ██╔══╝  ██╔══██╗╚════██║\n", color2);
-  printf("%s╚██████╗██║  ██║███████╗╚██████╗██║  ██╗███████╗██║  ██║███████║\n", color1);
-  printf("%s ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝\n", color2);
-  printf("%s                                                                \n", RESET_COLOR);
 }
 
 void menu() {
