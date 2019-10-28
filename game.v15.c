@@ -1,7 +1,6 @@
 #include <stdio.h>    // printf, scanf, ...
 #include <unistd.h>   // sleep(int)
 #include <stdarg.h>   // va_list
-#include <string.h>   // strncmp
 #include "colorize.c"
 
 int debug(char* fmt, ...) {
@@ -89,18 +88,19 @@ char emptyEven[3][7] = {
 // ------------------- //
 //    General Utils    //
 // ------------------- //
-int isDigit(char ch) {
-  return '0' <= ch && ch <= '9';
-}
-
-void fillBuffer() {
-  setbuf(stdin , NULL);
-  scanf("%[^\n]", buffer);
-}
-
-void unimplemented(char* function) {
-  printf("[Unimplemented] %s\n", function);
-  printf("...\n");
+int indexOfTh(char* str, char ch, int th) {
+  while (*str == ' ') str++; // lstrip
+  
+  int count = 0;
+  for (int i = 0; str[i]; i++) {
+    if (str[i] == ch) {
+      count++;
+      if (count == th) return i;
+      while (str[i] == ch) i++;
+      if (str[i] == 0) i--;
+    }
+  }
+  return -1;
 }
 
 // ------------------- //
@@ -127,21 +127,41 @@ void swapPlayer() {
   currentPlayer = currentPlayer == 'B' ? 'W' : 'B';
 }
 
+int isDigit(char ch) {
+  return '0' <= ch && ch <= '9';
+}
+
+void fillBuffer() {
+  setbuf(stdin , NULL);
+  scanf("%[^\n]", buffer);
+}
+
+
+void unimplemented(char* function) {
+  printf("[Unimplemented] %s\n", function);
+  printf("...\n");
+}
+
+int getCoordinate(int *x, int *y) {
+  debug("Buffer 1: '%s'\n", buffer + shift);
+  for (; buffer[shift] && !isDigit(buffer[shift]); shift++);
+  debug("Buffer 2: '%s'\n", buffer + shift);
+  *x = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;
+  debug("Buffer 3: '%s'\n", buffer + shift);
+  for (; buffer[shift] && !isDigit(buffer[shift]); shift++);
+  debug("Buffer 4: '%s'\n", buffer + shift);
+  *y = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;
+  debug("Buffer 5: '%s'\n", buffer + shift);
+  debug("Coordinate(%d,%d)\n", *x, *y);
+
+  return *x != -1 && *y != -1;
+}
+
 void updateMove(int x, int y) {
   px = mx;
   py = my;
   mx = x;
   my = y;
-}
-
-int getCoordinate(int *x, int *y) {
-  for (; buffer[shift] && !isDigit(buffer[shift]); shift++);  // skip non digit
-  *x = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;   // consume 1 digit
-  for (; buffer[shift] && !isDigit(buffer[shift]); shift++);  // skip non digit
-  *y = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;   // consume 1 digit
-  debug("LOG: Coordinate(%d,%d)\n", *x, *y);
-
-  return *x != -1 && *y != -1;
 }
 
 // ------------------- //
@@ -473,44 +493,12 @@ char move() {
   return 0;
 }
 
-int getCommand() {
-  if (strncmp(buffer, "give up", 7) == 0) {
-    printf("\nPlayer '%s' give up...", getCurrentPlayer());
-    if (currentPlayer == 'B') deadBlacks = 12;
-    else deadWhites = 12;
-    error = 0;
-    return 1;
-  }
-  if (strncmp(buffer, "show", 4) == 0) {
-    printf("\n");
-    drawBoard();
-    error = 0;
-    return 1;
-  }
-  if (strncmp(buffer, "help", 4) == 0) {
-    printf("\n>>> Commands available:\n");
-    printf("\n    give up: Leave the match (+20 rounds)");
-    printf("\n    show: Show the board");
-    printf("\n    help: Show this message\n");
-    error = 0;
-    return 1;
-  }
-
-  return 0;
-}
-
 void getInput() {
-  printf("\n[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
-  printf("Move pxpy mxmy ...: ");
+  printf("[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
+  printf("Move pxpy mxmy ...:\n");
   fillBuffer();
-  if (buffer[0] != '/') {
-    if (!getCoordinate(&px, &py) || !getCoordinate(&mx, &my)) {
-      if (!getCommand())
-        error = 8;
-    }
-  } else {
-    printf("%s\n", buffer);
-  }
+  if (!getCoordinate(&px, &py) || !getCoordinate(&mx, &my))
+    error = 8;
   printf("\n");
 }
 
