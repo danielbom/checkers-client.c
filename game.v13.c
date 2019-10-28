@@ -85,6 +85,11 @@ char emptyEven[3][7] = {
   "      ",
 };
 
+void fillBuffer() {
+  setbuf(stdin , NULL);
+  scanf("%[^\n]", buffer);
+}
+
 // ------------------- //
 //        Utils        //
 // ------------------- //
@@ -132,31 +137,6 @@ int getCoordinate(char *input) {
   mx = coordenate / 10;
   my = coordenate % 10;
   return res;
-}
-
-void skipNonDigit() {
-  for (; buffer[shift]; shift++) {
-    if (buffer[shift] >= '0' && buffer[shift] <= '9')
-      break;
-  }
-}
-
-void skipDigit() {
-  for (; buffer[shift]; shift++) {
-    if (buffer[shift] < '0' && buffer[shift] > '9')
-      break;
-  }
-}
-
-void fillBuffer() {
-  setbuf(stdin , NULL);
-  scanf("%[^\n]", buffer);
-}
-
-
-void unimplemented(char* function) {
-  printf("[Unimplemented] %s\n", function);
-  printf("...\n");
 }
 
 // ------------------- //
@@ -528,19 +508,7 @@ void play() {
   sleep(SLEEP_TIME);
 }
 
-void logo() {
-  char* color1 = BOLD_BLUE_COLOR;
-  char* color2 = BOLD_GREEN_COLOR;
-  printf("%s ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗███████╗██████╗ ███████╗\n", color1);
-  printf("%s██╔════╝██║  ██║██╔════╝██╔════╝██║ ██╔╝██╔════╝██╔══██╗██╔════╝\n", color2);
-  printf("%s██║     ███████║█████╗  ██║     █████╔╝ █████╗  ██████╔╝███████╗\n", color1);
-  printf("%s██║     ██╔══██║██╔══╝  ██║     ██╔═██╗ ██╔══╝  ██╔══██╗╚════██║\n", color2);
-  printf("%s╚██████╗██║  ██║███████╗╚██████╗██║  ██╗███████╗██║  ██║███████║\n", color1);
-  printf("%s ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝\n", color2);
-  printf("%s                                                                \n", RESET_COLOR);
-}
-
-void playLocalGame() {
+int main(int argc, char const *argv[]) {
   init();
   drawBoard();
   
@@ -548,65 +516,5 @@ void playLocalGame() {
     play();
   
   drawResult();
-}
-
-// ------------------- //
-//         Menu        //
-// ------------------- //
-void aboutMenuOption() {
-  unimplemented("About");
-}
-void settingsMenuOption() {
-  unimplemented("Settings");
-}
-void instructionsMenuOption() {
-  unimplemented("Instructions");
-}
-void accessGameMenuOption() {
-  unimplemented("Access Game");
-}
-void createGameMenuOption() {
-  unimplemented("Create Game");
-}
-void playLocalMenuOption() {
-  playLocalGame();
-}
-void exitMenuOption() {
-  unimplemented("Exit");
-}
-
-void menu() {
-  printf("1 -       Play local      - 1\n");
-  printf("2 -  Create game (online) - 2\n");
-  printf("3 -  Access game (online) - 3\n");
-  printf("4 -      Instructions     - 4\n");
-  printf("5 -        Settings       - 5\n");
-  printf("6 -         About         - 6\n");
-  printf("0 -          Exit         - 0\n");
-
-  int option = -1;
-
-  while (1) {
-    printf(">>> ");
-    fillBuffer();
-    sscanf(buffer, "%d", &option);
-    printf("%s\n", buffer);
-    if (option >= 0 && option <= 6) break;
-    printf("Invalid option! Try again...\n");
-  }
-
-  switch(option) {
-    case 0: exitMenuOption(); break;
-    case 1: playLocalMenuOption(); break;
-    case 2: createGameMenuOption(); break;
-    case 3: accessGameMenuOption(); break;
-    case 4: instructionsMenuOption(); break;
-    case 5: settingsMenuOption(); break;
-    case 6: aboutMenuOption(); break;
-  }
-}
-
-int main(int argc, char const *argv[]) {
-  menu();
   return 0;
 }
