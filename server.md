@@ -27,3 +27,4 @@
 ### **(Maybe)** Servidor do Jogo : Servidor Generico de Mensagens
   - Controle de pontuação dos jogadores
   - Ranking
+  - Tournament
