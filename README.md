@@ -1,5 +1,11 @@
 
-## **Checkers game**
+## **Theme: Checkers game**
+
+Team: Daniel and Mara  
+
+Description: colocar como funciona o jogo  
+
+Technology: C  
 
 Basic checkers game write in C.
 
@@ -31,4 +37,8 @@ Basic checkers game write in C.
 ### **Observations***
 > **!Warning!**: Files "game.v[*].c" can has errors.  
 
-# Archictecture
+## Archictecture
+colocar desenho
+
+
+
