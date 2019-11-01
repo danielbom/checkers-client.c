@@ -1,11 +1,5 @@
 
-## **Theme: Checkers game**
-
-Team: Daniel and Mara  
-
-Description: colocar como funciona o jogo  
-
-Technology: C  
+## **Checkers game**
 
 Basic checkers game write in C.
 

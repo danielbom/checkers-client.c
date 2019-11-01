@@ -1,6 +1,14 @@
 
 # Projeto de Sistemas Distribuídos
 
+Tema: Jogo de Damas com um sistema de Lobby.
+
+Time: Daniel e Mara.
+
+Descrição: colocar como funciona o jogo
+
+Tecnologia: C 
+
 ## Lobby de Chat
 
 ### Servidor Generico de Mensagens
@@ -14,6 +22,33 @@
   - Criar uma sala
   - Conectar a uma sala
   - Enviar mensagem
+
+### Protocolo Genérico
+
+## **Criar**
+|                     Argumentos                    | Tamanho (Bytes) |
+|:-------------------------------------------------:|:---------------:|
+|                     ID de erro                    |        4        |
+|                       Socket                      |        ?        |
+|                  Nome do usuário                  |        64       |
+|                    Nome da sala                   |        64       |
+| Quantidade de usuários permitidos na sala [2, 16] |        4        |
+
+## **Conectar**
+|                     Argumentos                    | Tamanho (Bytes) |
+|:-------------------------------------------------:|:---------------:|
+|                     ID de erro                    |        4        |
+|                       Socket                      |        ?        |
+|                  Nome do usuário                  |        64       |
+|                    Nome da sala                   |        64       |
+
+## **Enviar**
+|                     Argumentos                    | Tamanho (Bytes) |
+|:-------------------------------------------------:|:---------------:|
+|                     ID de erro                    |        4        |
+|                       Socket                      |        ?        |
+|                    Nome da sala                   |        64       |
+|                      Message                      |       256       |
 
 ## Game
 
