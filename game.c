@@ -127,21 +127,21 @@ void swapPlayer() {
   currentPlayer = currentPlayer == 'B' ? 'W' : 'B';
 }
 
-void updateMove(int x, int y) {
-  px = mx;
-  py = my;
-  mx = x;
-  my = y;
-}
-
-int getCoordinate(int *x, int *y) {
+int getCoordinate() {
   for (; buffer[shift] && !isDigit(buffer[shift]); shift++);  // skip non digit
-  *x = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;   // consume 1 digit
+  int x = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;   // consume 1 digit
   for (; buffer[shift] && !isDigit(buffer[shift]); shift++);  // skip non digit
-  *y = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;   // consume 1 digit
-  debug("LOG: Coordinate(%d,%d)\n", *x, *y);
+  int y = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;   // consume 1 digit
+  debug("LOG: Coordinate(%d,%d)\n", x, y);
 
-  return *x != -1 && *y != -1;
+  if (x != -1 && y != -1) {
+    px = mx;
+    py = my;
+    mx = x;
+    my = y;
+    return 0;
+  }
+  return 1;
 }
 
 // ------------------- //
@@ -391,13 +391,11 @@ char tryMultipleCapture(char up) {
   if (tryCapture(up)) return 1;
   debug("LOG: Capture [%s]\n", getCurrentPlayer());
 
-  int nextX, nextY;
-  while (getCoordinate(&nextX, &nextY)) {
+  while (!getCoordinate()) {
     drawBoard();
     sleep(SLEEP_TIME);
     printf("\n\n");
     debug("LOG: Capture [%s]\n", getCurrentPlayer());
-    updateMove(nextX, nextY);
     if (isBounded()) {
       if (!tryCapture(1) || !tryCapture(0)) {
         countMoves++;
@@ -504,7 +502,7 @@ void getInput() {
   printf("Move pxpy mxmy ...: ");
   fillBuffer();
   if (buffer[0] != '/') {
-    if (!getCoordinate(&px, &py) || !getCoordinate(&mx, &my)) {
+    if (getCoordinate() || getCoordinate()) {
       if (!getCommand())
         error = 8;
     }
@@ -516,7 +514,7 @@ void getInput() {
 
 void update() {
   shift = 0;    // Flush reader
-  if (error != 0) return;
+  if (error) return;
 
   countMoves++;
   saveCurrentMove();
