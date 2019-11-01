@@ -3,6 +3,12 @@
 
 Basic checkers game write in C.
 
+- 01/11/2019: 
+  * Develop SD project integration.
+
+- 28/10/2019: Estimated time spend: ~6 hours. (continuos)
+  * Generalize input logic, add menu and add commands.
+
 - 24/10/2019: Estimated time spend: ~1 hour.
   * Simple updates and refactor.
 
