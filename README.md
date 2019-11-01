@@ -23,4 +23,6 @@ Basic checkers game write in C.
 > gcc game.c -o game -D DEBUG && ./game
 
 ### **Observations***
-> **!Warning!**: Files "game.v[*].c" can has errors.
+> **!Warning!**: Files "game.v[*].c" can has errors.  
+
+# Archictecture
