@@ -205,7 +205,7 @@ void printDiv() {
 void drawBoardOnlyColors() {
   int i, j, k, id, player;
   for (i = 0; i < 8; i++) {
-    for (k = -1; k < 4; k++) {
+    for (k = -1; k < 3; k++) {
       if (k == 1) {
         printf(" %d  ", i);
       } else {
@@ -226,14 +226,12 @@ void drawBoardOnlyColors() {
             printf("%s", BOLD_MAGENTA_COLOR);
 
           if (pieces[id].lady) {
-            if (k == 0)      printf(" █████ ");
-            else if (k == 1) printf(" █   █ ");
-            else if (k == 2) printf(" █████ ");
+            if (k == 0)      printf(" █   █ ");
+            else if (k == 1) printf(" █████ ");
             else             printf("       ");
           } else {
             if (k == 0)      printf(" █████ ");
             else if (k == 1) printf(" █████ ");
-            else if (k == 2) printf(" █████ ");
             else             printf("       ");
           }
         }
@@ -307,7 +305,6 @@ void drawBoardWithCharacteres() {
 void drawBoard() {
   drawBoardOnlyColors();
 }
-
 
 void drawResult() {
   printf("\n\n");
@@ -535,25 +532,23 @@ int getCommand() {
     printf("\nPlayer '%s' give up...", getCurrentPlayer());
     if (currentPlayer == 'B') deadBlacks = 12;
     else deadWhites = 12;
-    error = 0;
-    return 1;
+    saveCurrentMove();
+    return 0;
   }
   if (strncmp(buffer, "show", 4) == 0) {
     printf("\n");
     drawBoard();
-    error = 0;
-    return 1;
+    return 0;
   }
   if (strncmp(buffer, "help", 4) == 0) {
     printf("\n>>> Commands available:\n");
     printf("\n    give up: Leave the match (+20 rounds)");
     printf("\n    show: Show the board");
     printf("\n    help: Show this message\n");
-    error = 0;
-    return 1;
+    return 0;
   }
 
-  return 0;
+  return 1;
 }
 
 void getInput() {
@@ -562,7 +557,7 @@ void getInput() {
   fillBuffer();
   if (buffer[0] != '/') {
     if (getCoordinate() || getCoordinate()) {
-      if (!getCommand())
+      if (getCommand())
         error = 8;
     }
   } else {
