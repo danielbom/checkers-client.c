@@ -202,7 +202,61 @@ void printDiv() {
   printf("\n");
 }
 
-void drawBoard() {
+void drawBoardOnlyColors() {
+  int i, j, k, id, player;
+  for (i = 0; i < 8; i++) {
+    for (k = -1; k < 4; k++) {
+      if (k == 1) {
+        printf(" %d  ", i);
+      } else {
+        printf("    ");
+      }
+      for (j = 0; j < 8; j++) {
+        if ((i % 2 == 0 && j % 2 == 1) || (i % 2 == 1 && j % 2 == 0)) {
+          printf("%s", BG_BLACK_COLOR);
+        } else {
+          printf("%s", BG_CYAN_COLOR);
+        }
+        if (board[i][j] == 0) {
+          printf("       ");
+        } else {
+          id = board[i][j] - 1;
+          player = pieces[id].player;
+          if (player == 'B')
+            printf("%s", BOLD_MAGENTA_COLOR);
+
+          if (pieces[id].lady) {
+            if (k == 0)      printf(" █████ ");
+            else if (k == 1) printf(" █   █ ");
+            else if (k == 2) printf(" █████ ");
+            else             printf("       ");
+          } else {
+            if (k == 0)      printf(" █████ ");
+            else if (k == 1) printf(" █████ ");
+            else if (k == 2) printf(" █████ ");
+            else             printf("       ");
+          }
+        }
+        printf("%s", RESET_COLOR);
+      }
+      printf("\n");
+    }
+  }
+  printf("\n    ");
+  for (i = 0; i < 8; i++) {
+    printf("   %c   ", '0' + i);
+  }
+  printf("\n");
+
+  if (px != -1) {
+    printf("\n");
+    printf("[%d] Last move (%d,%d) -> (%d,%d) [%s]\n", countMoves - 1, px, py, mx, my, getCurrentPlayer());
+  }
+
+  printState();
+}
+
+void drawBoardWithCharacteres() {
   int i, j, k, id, player;
   printDiv();
   for (i = 0; i < 8; i++) {
@@ -249,6 +303,11 @@ void drawBoard() {
 
   printState();
 }
+
+void drawBoard() {
+  drawBoardOnlyColors();
+}
+
 
 void drawResult() {
   printf("\n\n");
