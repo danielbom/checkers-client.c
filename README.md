@@ -32,7 +32,7 @@ Basic checkers game write in C.
 > **!Warning!**: Files "game.v[*].c" can has errors.  
 
 ## Archictecture
-https://www.lucidchart.com/documents/edit/47cc86bf-4a53-487e-a5cc-3a3591d2e6fb
+https://www.lucidchart.com/documents/edit/47cc86bf-4a53-487e-a5cc-3a3591d2e6fb  
 
 
 
