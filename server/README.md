@@ -60,3 +60,6 @@ Tecnologia: C
   - Controle de pontuação dos jogadores
   - Ranking
   - Tournament
+
+### TODO
+  - Armazenar de forma persistente o estado do servidor e do cliente

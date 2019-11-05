@@ -3,6 +3,9 @@
 
 Basic checkers game write in C.
 
+- 04/11/2019: Estimated time spend: 
+  * Update base of server and client.
+
 - 01/11/2019: Estimated time spend: 2 hours. (not continuos)
   * Develop SD project integration and and new view board.
 
@@ -37,7 +40,4 @@ https://www.lucidchart.com/documents/view/47cc86bf-4a53-487e-a5cc-3a3591d2e6fb/0
 ![alt text](https://github.com/danielbom/Checkers/blob/master/checkers_arch.png "Checkers")   
 
 For more details about the SD project:  
-[Documentation](https://github.com/danielbom/Checkers/blob/master/distributed.system.description.md)
-
-
-
+[Documentation](https://github.com/danielbom/Checkers/blob/master/server/README.md)
