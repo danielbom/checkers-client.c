@@ -12,6 +12,7 @@
 
 #include "utils.server.c"
 
+#define BUFFER_SERVER_SIZE 1024
 
 SocketAddrIn masterAddress;
 int masterAddressLength = 0;
@@ -30,7 +31,7 @@ int reservedRoomClients[50] = {0};
 fd_set systemSetDescriptor;
 
 void loop() {
-  char masterBuffer[1025];
+  char masterBuffer[BUFFER_SERVER_SIZE + 1];
   int i, maxID = masterID;
 
   while (1) {
@@ -75,17 +76,22 @@ void loop() {
     for (i = 0; i < limitOfClients; i++) {
       int sd = clientListSockets[i];
       if (FD_ISSET(sd, &systemSetDescriptor)) {
-        int numberOfBytes = read(sd, masterBuffer, 1024);
+        int numberOfBytes = read(sd, masterBuffer, BUFFER_SERVER_SIZE);
         if (numberOfBytes == 0) {
           printf("Host disconnected\n");
           showHostInfos(sd);
           clientListSockets[i] = 0;
           break;
-        } else {
+        } else { // Broadcast
+          printf("Broadcast\n");
           masterBuffer[numberOfBytes] = 0;
           showHostInfos(sd);
           printf("Received: '%s'\n", masterBuffer);
-          send(sd, masterBuffer, numberOfBytes, 0);
+          for (int j = 0; j < limitOfClients; j++) {
+            int sdt = clientListSockets[j];
+            if (sdt != 0 && sdt != sd)
+              send(sdt, masterBuffer, numberOfBytes, 0);
+          }
           break;
         }
       }
@@ -119,8 +125,6 @@ void initMasterSocket() {
 
 int main() {
   initMasterSocket();
-
   loop();
-
   return 0;
 }

@@ -29,7 +29,6 @@ Tecnologia: C
 |                     Argumentos                    | Tamanho (Bytes) |
 |:-------------------------------------------------:|:---------------:|
 |                     ID de erro                    |        4        |
-|                       Socket                      |        ?        |
 |                  Nome do usuário                  |        64       |
 |                    Nome da sala                   |        64       |
 | Quantidade de usuários permitidos na sala [2, 16] |        4        |
@@ -38,7 +37,6 @@ Tecnologia: C
 |                     Argumentos                    | Tamanho (Bytes) |
 |:-------------------------------------------------:|:---------------:|
 |                     ID de erro                    |        4        |
-|                       Socket                      |        ?        |
 |                  Nome do usuário                  |        64       |
 |                    Nome da sala                   |        64       |
 
@@ -46,8 +44,7 @@ Tecnologia: C
 |                     Argumentos                    | Tamanho (Bytes) |
 |:-------------------------------------------------:|:---------------:|
 |                     ID de erro                    |        4        |
-|                       Socket                      |        ?        |
-|                    Nome da sala                   |        64       |
+|                    Hash da sala                   |       128       |
 |                      Message                      |       256       |
 
 ## Game

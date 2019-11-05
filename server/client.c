@@ -66,6 +66,12 @@ void initClientSocket() {
   rejectCriticalError("(connect) Failed to connect with the server", error == -1);
 }
 
+void createRoom() {
+  char buffer[BUFFER_CLIENT_SIZE + 1] = {0};
+  send(socketClient, buffer, strlen(buffer), 0);
+  int numberOfBytes = read(socketClient, buffer, BUFFER_CLIENT_SIZE);
+}
+
 int main(int argc, char const *argv[]) {
   int valread;
 
