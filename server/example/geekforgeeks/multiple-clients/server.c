@@ -137,9 +137,6 @@ int main(int argc , char *argv[]) {
           client_socket[i] = 0;
         } else { //Echo back the message that came in
           //set the string terminating NULL byte on the end of the data read
-          buffer[--valread] = ' ';
-          buffer[--valread] = ' ';
-          buffer[valread++] = '1';
           buffer[valread] = '\0';
           send(sd, buffer, strlen(buffer), 0 );
         }
