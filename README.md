@@ -35,9 +35,8 @@ Basic checkers game write in C.
 > **!Warning!**: Files "game.v[*].c" can has errors.  
 
 ## Archictecture
-https://www.lucidchart.com/documents/view/47cc86bf-4a53-487e-a5cc-3a3591d2e6fb/0_0  
 
-![alt text](https://github.com/danielbom/Checkers/blob/master/checkers_arch.png "Checkers")   
+![alt text](https://github.com/danielbom/Checkers/blob/master/checkers_arch2.png "Checkers")   
 
 For more details about the SD project:  
-[Documentation](https://github.com/danielbom/Checkers/blob/master/server/README.md)
+[Documentation](https://github.com/danielbom/Checkers/blob/master/server/README.md)  
