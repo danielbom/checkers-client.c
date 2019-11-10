@@ -112,7 +112,7 @@ void *createPacketToSendMessageByClient(char* username, char* roomName, char* me
 }
 void *createPacketToExitByClient(char *username, char *password) {
   char *buffer = ByteBufferAllocate(256);
-  setOperationOnPacket(buffer, OP_SEND_MESSAGE);
+  setOperationOnPacket(buffer, OP_EXIT);
   setTypeOnPacket(buffer, TYPE_CLIENT);
   int shift = sizeof(int) * 3;
   ByteBufferPutString(buffer, &shift, username, 64);
@@ -194,69 +194,3 @@ void readPacketToExitByClient(char* packet, void (*callback)(int, int, int, char
   }
 }
 
-void testOnePacket(char* packet) {
-  if (!getErrorOfPacket(packet)) {
-    int op = getOperationOfPacket(packet);
-    switch(op) {
-      case OP_LIST:
-      readPacketToListRoomsByClient(packet, NULL);
-      break;
-      case OP_CONNECT:
-      readPacketToConnectByClient(packet, NULL);
-      break;
-      case OP_CREATE_ROOM:
-      readPacketToCreateRoomByClient(packet, NULL);
-      break;
-      case OP_SEND_MESSAGE:
-      readPacketToSendMessageByClient(packet, NULL);
-      break;
-      case OP_EXIT:
-      readPacketToExitByClient(packet, NULL);
-      break;
-    }
-  }
-  free(packet);
-}
-void testPackets() {
-  testOnePacket(createPacketToListRoomsByClient());
-  testOnePacket(createPacketToConnectByClient("user-123", "123456", "-room-"));
-  testOnePacket(createPacketToCreateRoomByClient("user-123", "123456", "-room-", 2));
-  testOnePacket(createPacketToSendMessageByClient("user-123", "-room-", "Hello world!"));
-  testOnePacket(createPacketToExitByClient("user-123", "123456"));
-}
-
-void testCallback1() {
-  void callback(int error, int type, int op, char *username, char *roomName, char *message) {
-    printf("Message '%s'\n", message);
-  }
-  char* packet = createPacketToSendMessageByClient("user-123", "-room-", "Hello world!");
-  readPacketToSendMessageByClient(packet, &callback);
-  free(packet);
-}
-void testCallback2() {
-  void callback(int error, int type, int op, char *username, char *password, char *roomName, int numbberOfUsers) {
-    printf("Username '%s'\n", username);
-  }
-  char* packet = createPacketToCreateRoomByClient("user-123", "123456", "-room-", 2);
-  readPacketToCreateRoomByClient(packet, &callback);
-  free(packet);
-}
-
-int main(int argc, char const *argv[]) {
-  testPackets();
-  testCallback1();
-  testCallback2();
-  /*
-  int valread;
-
-  initClientSocket();
-
-  pthread_t thread;
-  senderRunner(&thread);
-  receiverRunner(&thread, NULL);
-
-  printf("Loop...\n");
-  while (runningClient) {}
-  */
-  return 0;
-}
