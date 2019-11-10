@@ -19,9 +19,11 @@ Tecnologia: C
 ### Cliente Generico de Mensagens
   - Deve ser capaz de criar salas do servidor de mensagens e também se conectar a elas.
 
-  - Criar uma sala
-  - Conectar a uma sala
-  - Enviar mensagem
+  - 1) Listar salas 
+  - 2) Conectar a uma sala
+  - 4) Criar uma sala
+  - 5) Enviar mensagem
+  - 6) Sair
 
 ### Protocolo Genérico
 
@@ -29,7 +31,11 @@ Tecnologia: C
 |                     Argumentos                    | Tamanho (Bytes) |
 |:-------------------------------------------------:|:---------------:|
 |                     ID de erro                    |        4        |
+|                  Cliente/Servidor                 |        4        |
+|                      Operação                     |        4        |
+|                      Tamanho                      |        4        |
 |                  Nome do usuário                  |        64       |
+|                       Senha                       |        64       |
 |                    Nome da sala                   |        64       |
 | Quantidade de usuários permitidos na sala [2, 16] |        4        |
 
@@ -37,15 +43,30 @@ Tecnologia: C
 |                     Argumentos                    | Tamanho (Bytes) |
 |:-------------------------------------------------:|:---------------:|
 |                     ID de erro                    |        4        |
+|                  Cliente/Servidor                 |        4        |
+|                      Operação                     |        4        |
+|                      Tamanho                      |        4        |
 |                  Nome do usuário                  |        64       |
+|                       Senha                       |        64       |
 |                    Nome da sala                   |        64       |
 
 ## **Enviar**
 |                     Argumentos                    | Tamanho (Bytes) |
 |:-------------------------------------------------:|:---------------:|
 |                     ID de erro                    |        4        |
-|                    Hash da sala                   |       128       |
-|                      Message                      |       256       |
+|                  Cliente/Servidor                 |        4        |
+|                      Operação                     |        4        |
+|                      Tamanho                      |        4        |
+|                  Nome do usuário                  |        64       |
+|                    Nome da sala                   |        64       |
+|                      Mensagem                     |       256       |
+
+## **Listar salas**
+|                     Argumentos                    | Tamanho (Bytes) |
+|:-------------------------------------------------:|:---------------:|
+|                     ID de erro                    |        4        |
+|                  Cliente/Servidor                 |        4        |
+|                      Operação                     |        4        |
 
 ## Game
 

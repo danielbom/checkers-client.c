@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <netinet/in.h>
+#include "byte-buffer.c"
 
 // Alias to increase readability
 typedef struct sockaddr_in SocketAddrIn;
@@ -24,19 +25,24 @@ enum {
 
 // Gets
 int getErrorOfPacket(char* packet) {
-  int error;
-  memcpy(&error, packet, sizeof(int));
-  return error;
+  return ByteBufferGetIntAbs(packet, 0);
 }
 int getTypeOfPacket(char* packet) {
-  int type;
-  memcpy(&type, packet + sizeof(int), sizeof(int));
-  return type;
+  return ByteBufferGetIntAbs(packet, sizeof(int));
 }
 int getOperationOfPacket(char* packet) {
-  int op;
-  memcpy(&op, packet + (sizeof(int) * 2), sizeof(int));
-  return op;
+  return ByteBufferGetIntAbs(packet, sizeof(int) * 2);
+}
+
+// Sets
+void setErrorOnPacket(char* packet, int value) {
+  ByteBufferPutIntAbs(packet, 0, value);
+}
+void setTypeOnPacket(char* packet, int value) {
+  ByteBufferPutIntAbs(packet, sizeof(int), value);
+}
+void setOperationOnPacket(char* packet, int value) {
+  ByteBufferPutIntAbs(packet, sizeof(int) * 2, value);
 }
 
 // Utils

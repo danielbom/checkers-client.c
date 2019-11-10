@@ -98,7 +98,6 @@ void loop() {
     }
   }
 }
-
 void initMasterSocket() {
   int opt = 1, error;
 
@@ -122,6 +121,8 @@ void initMasterSocket() {
   printf(">>> Sizeof(masterAddress): %ld\n", sizeof(masterAddress));
   printf(">>> Server socket listen on port '%d'\n", masterPort);
 }
+
+
 
 int main() {
   initMasterSocket();
