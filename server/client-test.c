@@ -1,7 +1,8 @@
 #include "client.c"
 
 void testOnePacket(char* packet, void* callback) {
-  if (!getErrorOfPacket(packet)) {
+  int error = getErrorOfPacket(packet);
+  if (!error) {
     int op = getOperationOfPacket(packet);
     switch(op) {
       case OP_LIST:
@@ -20,6 +21,8 @@ void testOnePacket(char* packet, void* callback) {
       readPacketToExitByClient(packet, callback);
       break;
     }
+  } else {
+    checkErrorOfServer(error);
   }
   free(packet);
 }
@@ -31,38 +34,52 @@ void testPackets() {
   testOnePacket(createPacketToExitByClient("user-123", "123456"), NULL);
 }
 
-void callback1(int error, int type, int op) {
+void callbackListRooms(int error, int type, int op) {
   printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
   printf("\n");
 }
-void callback2(int error, int type, int op, char *username, char *password, char* roomName) {
+void callbackConnect(int error, int type, int op, char *username, char *password, char* roomName) {
   printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
   printf(", Username: '%s', Password: '%s', Room name: '%s'\n", username, password, roomName);
 }
-void callback3(int error, int type, int op, char *username, char *password, char *roomName, int numberOfUsers) {
+void callbackCreateRoom(int error, int type, int op, char *username, char *password, char *roomName, int numberOfUsers) {
   printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
   printf(", Username: '%s', Password: '%s', Room name: '%s', Number of users: '%d'\n", username, password, roomName, numberOfUsers);
 }
-void callback4(int error, int type, int op, char *username, char *roomName, char *message) {
+void callbackSendMessage(int error, int type, int op, char *username, char *roomName, char *message) {
   printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
   printf(", Username: '%s', RoomName: '%s', Message: '%s'\n", username, roomName, message);
 }
-void callback5(int error, int type, int op, char *username, char *password) {
+void callbackExit(int error, int type, int op, char *username, char *password) {
   printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
   printf(", Username: '%s', Password: '%s'\n", username, password);
 }
 void testCallbacks() {
-  testOnePacket(createPacketToListRoomsByClient(), &callback1);
-  testOnePacket(createPacketToConnectByClient("user-123", "123456", "-room-"), &callback2);
-  testOnePacket(createPacketToCreateRoomByClient("user-123", "123456", "-room-", 2), &callback3);
-  testOnePacket(createPacketToSendMessageByClient("user-123", "-room-", "Hello world!"), &callback4);
-  testOnePacket(createPacketToExitByClient("user-123", "123456"), &callback5);
+  testOnePacket(createPacketToListRoomsByClient(), &callbackListRooms);
+  testOnePacket(createPacketToConnectByClient("user-123", "123456", "-room-"), &callbackConnect);
+  testOnePacket(createPacketToCreateRoomByClient("user-123", "123456", "-room-", 2), &callbackCreateRoom);
+  testOnePacket(createPacketToSendMessageByClient("user-123", "-room-", "Hello world!"), &callbackSendMessage);
+  testOnePacket(createPacketToExitByClient("user-123", "123456"), &callbackExit);
+}
+
+void testErrors() {
+  testOnePacket(createPacketToConnectByClient(NULL, "123456", "-room-"), NULL);
+  testOnePacket(createPacketToCreateRoomByClient("user-123", "123456", NULL, 2), NULL);
+  testOnePacket(createPacketToSendMessageByClient("user-123", "-room-", NULL), NULL);
+  testOnePacket(createPacketToExitByClient("user-123", NULL), NULL);
+  printf("\n");
+  testOnePacket(createPacketToConnectByClient(NULL, NULL, NULL), NULL);
+  testOnePacket(createPacketToCreateRoomByClient(NULL, NULL, NULL, 2), NULL);
+  testOnePacket(createPacketToSendMessageByClient(NULL, NULL, NULL), NULL);
+  testOnePacket(createPacketToExitByClient(NULL, NULL), NULL);
 }
 
 int main(int argc, char const *argv[]) {
   testPackets();
   printf("\n");
   testCallbacks();
+  printf("\n");
+  testErrors();
   /*
   int valread;
 

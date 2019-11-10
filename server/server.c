@@ -30,6 +30,29 @@ int clientListSockets[50] = {0};
 int reservedRoomClients[50] = {0};
 fd_set systemSetDescriptor;
 
+void initMasterSocket() {
+  int opt = 1, error;
+
+  masterID = socket(masterFamily, masterType, 0);
+  rejectCriticalError("(socket) Failed to create master socket", masterID == -1);
+
+  error = setsockopt(masterID, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
+  rejectCriticalError("(setsockopt) Failed to update master socket to allow multiples connections", error == -1);
+
+  // Setup master socket
+  masterAddress.sin_family = masterFamily;
+  masterAddress.sin_addr.s_addr = masterMaskInAddress;
+  masterAddress.sin_port = htons(masterPort);
+
+  error = bind(masterID, (SocketAddr*) &masterAddress, sizeof(masterAddress));
+  rejectCriticalError("(bind) Failed to bind master socket in give address", error == -1);
+
+  error = listen(masterID, 3);
+  rejectCriticalError("(listen) Failed to prepare to accept connections", error == -1);
+
+  printf(">>> Sizeof(masterAddress): %ld\n", sizeof(masterAddress));
+  printf(">>> Server socket listen on port '%d'\n", masterPort);
+}
 void loop() {
   char masterBuffer[BUFFER_SERVER_SIZE + 1];
   int i, maxID = masterID;
@@ -98,31 +121,6 @@ void loop() {
     }
   }
 }
-void initMasterSocket() {
-  int opt = 1, error;
-
-  masterID = socket(masterFamily, masterType, 0);
-  rejectCriticalError("(socket) Failed to create master socket", masterID == -1);
-
-  error = setsockopt(masterID, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
-  rejectCriticalError("(setsockopt) Failed to update master socket to allow multiples connections", error == -1);
-
-  // Setup master socket
-  masterAddress.sin_family = masterFamily;
-  masterAddress.sin_addr.s_addr = masterMaskInAddress;
-  masterAddress.sin_port = htons(masterPort);
-
-  error = bind(masterID, (SocketAddr*) &masterAddress, sizeof(masterAddress));
-  rejectCriticalError("(bind) Failed to bind master socket in give address", error == -1);
-
-  error = listen(masterID, 3);
-  rejectCriticalError("(listen) Failed to prepare to accept connections", error == -1);
-
-  printf(">>> Sizeof(masterAddress): %ld\n", sizeof(masterAddress));
-  printf(">>> Server socket listen on port '%d'\n", masterPort);
-}
-
-
 
 int main() {
   initMasterSocket();

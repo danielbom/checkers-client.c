@@ -59,3 +59,25 @@ void showHostInfos(int sd) {
   getpeername(sd, (struct sockaddr*)&addr, &addrLength);
   printf("%d = %s:%d\n", sd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
+
+int isNull(char* str) {
+  return str == NULL;
+}
+
+void checkErrorOfServer(int error) {
+  if (error) printf("ERROR: ");
+  switch (error) {
+    case 1:
+      printf("Username is null\n");
+      break;
+    case 2:
+      printf("Password is null\n");
+      break;
+    case 3:
+      printf("Room name is null\n");
+      break;
+    case 4:
+      printf("Message is null\n");
+      break;
+  }
+}

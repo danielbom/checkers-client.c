@@ -81,6 +81,14 @@ char* createPacketToListRoomsByClient() {
 }
 char* createPacketToConnectByClient(char* username, char* password, char* roomName) {
   char *buffer = ByteBufferAllocate(256);
+
+  int error = 0;
+  error = isNull(roomName) ? 3 : error;
+  error = isNull(password) ? 2 : error;
+  error = isNull(username) ? 1 : error;
+  setErrorOnPacket(buffer, error);
+  if (error) return buffer;
+
   setOperationOnPacket(buffer, OP_CONNECT);
   setTypeOnPacket(buffer, TYPE_CLIENT);
   int shift = sizeof(int) * 3;
@@ -91,6 +99,14 @@ char* createPacketToConnectByClient(char* username, char* password, char* roomNa
 }
 char* createPacketToCreateRoomByClient(char* username, char* password, char* roomName, int numberOfUsers) {
   char *buffer = ByteBufferAllocate(256);
+
+  int error = 0;
+  error = isNull(roomName) ? 3 : error;
+  error = isNull(password) ? 2 : error;
+  error = isNull(username) ? 1 : error;
+  setErrorOnPacket(buffer, error);
+  if (error) return buffer;
+
   setOperationOnPacket(buffer, OP_CREATE_ROOM);
   setTypeOnPacket(buffer, TYPE_CLIENT);
   int shift = sizeof(int) * 3;
@@ -102,6 +118,14 @@ char* createPacketToCreateRoomByClient(char* username, char* password, char* roo
 }
 void *createPacketToSendMessageByClient(char* username, char* roomName, char* message) {
   char *buffer = ByteBufferAllocate(512);
+
+  int error = 0;
+  error = isNull(message) ? 4 : error;
+  error = isNull(roomName) ? 3 : error;
+  error = isNull(username) ? 1 : error;
+  setErrorOnPacket(buffer, error);
+  if (error) return buffer;
+
   setOperationOnPacket(buffer, OP_SEND_MESSAGE);
   setTypeOnPacket(buffer, TYPE_CLIENT);
   int shift = sizeof(int) * 3;
@@ -112,6 +136,13 @@ void *createPacketToSendMessageByClient(char* username, char* roomName, char* me
 }
 void *createPacketToExitByClient(char *username, char *password) {
   char *buffer = ByteBufferAllocate(256);
+
+  int error = 0;
+  error = isNull(password) ? 2 : error;
+  error = isNull(username) ? 1 : error;
+  setErrorOnPacket(buffer, error);
+  if (error) return buffer;
+
   setOperationOnPacket(buffer, OP_EXIT);
   setTypeOnPacket(buffer, TYPE_CLIENT);
   int shift = sizeof(int) * 3;
@@ -193,4 +224,3 @@ void readPacketToExitByClient(char* packet, void (*callback)(int, int, int, char
     printf(", Username: '%s', Password: '%s'\n", username, password);
   }
 }
-
