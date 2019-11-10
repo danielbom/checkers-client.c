@@ -17,7 +17,7 @@ int ByteBufferPutIntAbs(void *buffer, int shift, int value) {
 }
 int ByteBufferPutStringAbs(void *buffer, int shift, char* value, int n) {
   int length = strlen(value);
-  strncat(buffer + shift + 1, value, n - 2);
+  strncat(buffer + shift, value, n - 1);
   n = (length > n ? n : length) + 1;
   char* sbuffer = buffer + shift + n;
   *sbuffer = 0;
@@ -35,7 +35,7 @@ int ByteBufferGetIntAbs(void *buffer, int shift) {
   return value;
 }
 char* ByteBufferGetStringAbs(void *buffer, int shift) {
-  return buffer + shift + 1;
+  return buffer + shift;
 }
 
 // Relative

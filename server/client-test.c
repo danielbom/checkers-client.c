@@ -28,10 +28,10 @@ void testOnePacket(char* packet, void* callback) {
 }
 void testPackets() {
   testOnePacket(createPacketToListRoomsByClient(), NULL);
-  testOnePacket(createPacketToConnectByClient("user-123", "123456", "-room-"), NULL);
-  testOnePacket(createPacketToCreateRoomByClient("user-123", "123456", "-room-", 2), NULL);
-  testOnePacket(createPacketToSendMessageByClient("user-123", "-room-", "Hello world!"), NULL);
-  testOnePacket(createPacketToExitByClient("user-123", "123456"), NULL);
+  testOnePacket(createPacketToConnectByClient("user-x", "123456", "-room-"), NULL);
+  testOnePacket(createPacketToCreateRoomByClient("user-x", "123456", "-room-", 2), NULL);
+  testOnePacket(createPacketToSendMessageByClient("user-x", "-room-", "Hello world!"), NULL);
+  testOnePacket(createPacketToExitByClient("user-x", "123456"), NULL);
 }
 
 void callbackListRooms(int error, int type, int op) {
@@ -74,13 +74,15 @@ void testErrors() {
   testOnePacket(createPacketToExitByClient(NULL, NULL), NULL);
 }
 
-int main(int argc, char const *argv[]) {
+void testsClient() {
   testPackets();
   printf("\n");
   testCallbacks();
   printf("\n");
   testErrors();
-  /*
+}
+
+void connectClient() {
   int valread;
 
   initClientSocket();
@@ -91,6 +93,9 @@ int main(int argc, char const *argv[]) {
 
   printf("Loop...\n");
   while (runningClient) {}
-  */
+}
+
+int main(int argc, char const *argv[]) {
+  connectClient();
   return 0;
 }
