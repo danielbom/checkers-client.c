@@ -22,32 +22,18 @@ void setNameRoomOnPacket(char* packet, char* room) {
 }
 
 // Create
-char* createPacketToListRoomsByClient() {
+char* createPacketToListRoomsByClient(int* shift) {
   char *buffer = ByteBufferAllocate(16);
   setOperationOnPacket(buffer, OP_LIST);
   setTypeOnPacket(buffer, TYPE_CLIENT);
+  *shift = sizeof(int) * 3;
   return buffer;
 }
-char* createPacketToConnectByClient(char* username, char* password, char* roomName) {
+char* createPacketToConnectByClient(char* username, char* password, char* roomName, int* shift) {
   char *buffer = ByteBufferAllocate(256);
-
-  int error = 0;
-  error = isNull(roomName) ? 3 : error;
-  error = isNull(password) ? 2 : error;
-  error = isNull(username) ? 1 : error;
-  setErrorOnPacket(buffer, error);
-  if (error) return buffer;
-
   setOperationOnPacket(buffer, OP_CONNECT);
   setTypeOnPacket(buffer, TYPE_CLIENT);
-  int shift = sizeof(int) * 3;
-  ByteBufferPutString(buffer, &shift, username, 64);
-  ByteBufferPutString(buffer, &shift, password, 64);
-  ByteBufferPutString(buffer, &shift, roomName, 64);
-  return buffer;
-}
-char* createPacketToCreateRoomByClient(char* username, char* password, char* roomName, int numberOfUsers) {
-  char *buffer = ByteBufferAllocate(256);
+  *shift = sizeof(int) * 3;
 
   int error = 0;
   error = isNull(roomName) ? 3 : error;
@@ -56,17 +42,35 @@ char* createPacketToCreateRoomByClient(char* username, char* password, char* roo
   setErrorOnPacket(buffer, error);
   if (error) return buffer;
 
-  setOperationOnPacket(buffer, OP_CREATE_ROOM);
-  setTypeOnPacket(buffer, TYPE_CLIENT);
-  int shift = sizeof(int) * 3;
-  ByteBufferPutString(buffer, &shift, username, 64);
-  ByteBufferPutString(buffer, &shift, password, 64);
-  ByteBufferPutString(buffer, &shift, roomName, 64);
-  ByteBufferPutInt(buffer, &shift, numberOfUsers);
+  ByteBufferPutString(buffer, shift, username, 64);
+  ByteBufferPutString(buffer, shift, password, 64);
+  ByteBufferPutString(buffer, shift, roomName, 64);
   return buffer;
 }
-void *createPacketToSendMessageByClient(char* username, char* roomName, char* message) {
+char* createPacketToCreateRoomByClient(char* username, char* password, char* roomName, int numberOfUsers, int* shift) {
+  char *buffer = ByteBufferAllocate(256);
+  setOperationOnPacket(buffer, OP_CREATE_ROOM);
+  setTypeOnPacket(buffer, TYPE_CLIENT);
+  *shift = sizeof(int) * 3;
+
+  int error = 0;
+  error = isNull(roomName) ? 3 : error;
+  error = isNull(password) ? 2 : error;
+  error = isNull(username) ? 1 : error;
+  setErrorOnPacket(buffer, error);
+  if (error) return buffer;
+
+  ByteBufferPutString(buffer, shift, username, 64);
+  ByteBufferPutString(buffer, shift, password, 64);
+  ByteBufferPutString(buffer, shift, roomName, 64);
+  ByteBufferPutInt(buffer, shift, numberOfUsers);
+  return buffer;
+}
+void *createPacketToSendMessageByClient(char* username, char* roomName, char* message, int* shift) {
   char *buffer = ByteBufferAllocate(512);
+  setOperationOnPacket(buffer, OP_SEND_MESSAGE);
+  setTypeOnPacket(buffer, TYPE_CLIENT);
+  *shift = sizeof(int) * 3;
 
   int error = 0;
   error = isNull(message) ? 4 : error;
@@ -75,16 +79,16 @@ void *createPacketToSendMessageByClient(char* username, char* roomName, char* me
   setErrorOnPacket(buffer, error);
   if (error) return buffer;
 
-  setOperationOnPacket(buffer, OP_SEND_MESSAGE);
-  setTypeOnPacket(buffer, TYPE_CLIENT);
-  int shift = sizeof(int) * 3;
-  ByteBufferPutString(buffer, &shift, username, 64);
-  ByteBufferPutString(buffer, &shift, roomName, 64);
-  ByteBufferPutString(buffer, &shift, message, 256);
+  ByteBufferPutString(buffer, shift, username, 64);
+  ByteBufferPutString(buffer, shift, roomName, 64);
+  ByteBufferPutString(buffer, shift, message, 256);
   return buffer;
 }
-void *createPacketToExitByClient(char *username, char *password) {
+void *createPacketToExitByClient(char *username, char *password, int* shift) {
   char *buffer = ByteBufferAllocate(256);
+  setOperationOnPacket(buffer, OP_EXIT);
+  setTypeOnPacket(buffer, TYPE_CLIENT);
+  *shift = sizeof(int) * 3;
 
   int error = 0;
   error = isNull(password) ? 2 : error;
@@ -92,28 +96,21 @@ void *createPacketToExitByClient(char *username, char *password) {
   setErrorOnPacket(buffer, error);
   if (error) return buffer;
 
-  setOperationOnPacket(buffer, OP_EXIT);
-  setTypeOnPacket(buffer, TYPE_CLIENT);
-  int shift = sizeof(int) * 3;
-  ByteBufferPutString(buffer, &shift, username, 64);
-  ByteBufferPutString(buffer, &shift, password, 64);
+  ByteBufferPutString(buffer, shift, username, 64);
+  ByteBufferPutString(buffer, shift, password, 64);
   return buffer;
 }
 
 // Read
-void readPacketToListRoomsByClient(char* packet, void (*callback)(int, int, int)) {
+void readPacketToListRoomsByClient(char* packet) {
   int shift = 0;
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
   int op = ByteBufferGetInt(packet, &shift);
-  if (callback) {
-    callback(error, type, op);
-  } else {
-    printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
-    printf("\n");
-  }
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf("\n");
 }
-void readPacketToConnectByClient(char* packet, void (*callback)(int, int, int, char*, char*, char*)) {
+void readPacketToConnectByClient(char* packet) {
   int shift = 0;
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
@@ -121,14 +118,10 @@ void readPacketToConnectByClient(char* packet, void (*callback)(int, int, int, c
   char* username = ByteBufferGetString(packet, &shift);
   char* password = ByteBufferGetString(packet, &shift);
   char* roomName = ByteBufferGetString(packet, &shift);
-  if (callback) {
-    callback(error, type, op, username, password, roomName);
-  } else {
-    printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
-    printf(", Username: '%s', Password: '%s', Room name: '%s'\n", username, password, roomName);
-  }
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', Password: '%s', Room name: '%s'\n", username, password, roomName);
 }
-void readPacketToCreateRoomByClient(char* packet, void (*callback)(int, int, int, char*, char*, char*, int)) {
+void readPacketToCreateRoomByClient(char* packet) {
   int shift = 0;
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
@@ -137,14 +130,10 @@ void readPacketToCreateRoomByClient(char* packet, void (*callback)(int, int, int
   char* password = ByteBufferGetString(packet, &shift);
   char* roomName = ByteBufferGetString(packet, &shift);
   int numberOfUsers = ByteBufferGetInt(packet, &shift);
-  if (callback) {
-    callback(error, type, op, username, password, roomName, numberOfUsers);
-  } else {
-    printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
-    printf(", Username: '%s', Password: '%s', Room name: '%s', Number of users: '%d'\n", username, password, roomName, numberOfUsers);
-  }
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', Password: '%s', Room name: '%s', Number of users: '%d'\n", username, password, roomName, numberOfUsers);
 }
-void readPacketToSendMessageByClient(char* packet, void (*callback)(int, int, int, char*, char*, char*)) {
+void readPacketToSendMessageByClient(char* packet) {
   int shift = 0;
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
@@ -152,28 +141,21 @@ void readPacketToSendMessageByClient(char* packet, void (*callback)(int, int, in
   char* username = ByteBufferGetString(packet, &shift);
   char* roomName = ByteBufferGetString(packet, &shift);
   char* message = ByteBufferGetString(packet, &shift);
-  if (callback) {
-    callback(error, type, op, username, roomName, message);
-  } else {
-    printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
-    printf(", Username: '%s', RoomName: '%s', Message: '%s'\n", username, roomName, message);
-  }
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', RoomName: '%s', Message: '%s'\n", username, roomName, message);
 }
-void readPacketToExitByClient(char* packet, void (*callback)(int, int, int, char*, char*)) {
+void readPacketToExitByClient(char* packet) {
   int shift = 0;
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
   int op = ByteBufferGetInt(packet, &shift);
   char* username = ByteBufferGetString(packet, &shift);
   char* password = ByteBufferGetString(packet, &shift);
-  if (callback) {
-    callback(error, type, op, username, password);
-  } else {
-    printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
-    printf(", Username: '%s', Password: '%s'\n", username, password);
-  }
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', Password: '%s'\n", username, password);
 }
 
+// Structure
 #define BUFFER_CLIENT_SIZE 512
 
 int socketPort = 12345;
@@ -182,10 +164,13 @@ int runningClient = 1;
 
 void *sender(void *arg) {
   char buffer[BUFFER_CLIENT_SIZE + 1] = {0};
+  int size;
   while (runningClient) {
     setbuf(stdin , NULL);
     scanf("%[^\n]", buffer);
-    send(socketClient, buffer, strlen(buffer), 0);
+    char* packet = createPacketToSendMessageByClient("Daniel", "room", buffer, &size);
+    send(socketClient, packet, size, 0);
+    free(packet);
     printf("Send: %s\n", buffer);
     buffer[0] = 0;
   }

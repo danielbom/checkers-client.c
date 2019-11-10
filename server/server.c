@@ -30,6 +30,87 @@ int clientListSockets[50] = {0};
 int reservedRoomClients[50] = {0};
 fd_set systemSetDescriptor;
 
+
+// Read
+void readPacketToListRoomsOfClient(int sd, char* packet) {
+  int shift = 0;
+  int error = ByteBufferGetInt(packet, &shift);
+  int type = ByteBufferGetInt(packet, &shift);
+  int op = ByteBufferGetInt(packet, &shift);
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf("\n");
+}
+void readPacketToConnectOfClient(int sd, char* packet) {
+  int shift = 0;
+  int error = ByteBufferGetInt(packet, &shift);
+  int type = ByteBufferGetInt(packet, &shift);
+  int op = ByteBufferGetInt(packet, &shift);
+  char* username = ByteBufferGetString(packet, &shift);
+  char* password = ByteBufferGetString(packet, &shift);
+  char* roomName = ByteBufferGetString(packet, &shift);
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', Password: '%s', Room name: '%s'\n", username, password, roomName);
+}
+void readPacketToCreateRoomOfClient(int sd, char* packet) {
+  int shift = 0;
+  int error = ByteBufferGetInt(packet, &shift);
+  int type = ByteBufferGetInt(packet, &shift);
+  int op = ByteBufferGetInt(packet, &shift);
+  char* username = ByteBufferGetString(packet, &shift);
+  char* password = ByteBufferGetString(packet, &shift);
+  char* roomName = ByteBufferGetString(packet, &shift);
+  int numberOfUsers = ByteBufferGetInt(packet, &shift);
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', Password: '%s', Room name: '%s', Number of users: '%d'\n", username, password, roomName, numberOfUsers);
+}
+void readPacketToSendMessageOfClient(int sd, char* packet) {
+  int shift = 0;
+  int error = ByteBufferGetInt(packet, &shift);
+  int type = ByteBufferGetInt(packet, &shift);
+  int op = ByteBufferGetInt(packet, &shift);
+  char* username = ByteBufferGetString(packet, &shift);
+  char* roomName = ByteBufferGetString(packet, &shift);
+  char* message = ByteBufferGetString(packet, &shift);
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', RoomName: '%s', Message: '%s'\n", username, roomName, message);
+}
+void readPacketToExitOfClient(int sd, char* packet) {
+  int shift = 0;
+  int error = ByteBufferGetInt(packet, &shift);
+  int type = ByteBufferGetInt(packet, &shift);
+  int op = ByteBufferGetInt(packet, &shift);
+  char* username = ByteBufferGetString(packet, &shift);
+  char* password = ByteBufferGetString(packet, &shift);
+  printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
+  printf(", Username: '%s', Password: '%s'\n", username, password);
+}
+void readPacketOfClient(int sd, char* packet) {
+  showHostInfos(sd);
+  int error = getErrorOfPacket(packet);
+  if (!error) {
+    int op = getOperationOfPacket(packet);
+    switch(op) {
+      case OP_LIST:
+      readPacketToListRoomsOfClient(sd, packet);
+      break;
+      case OP_CONNECT:
+      readPacketToConnectOfClient(sd, packet);
+      break;
+      case OP_CREATE_ROOM:
+      readPacketToCreateRoomOfClient(sd, packet);
+      break;
+      case OP_SEND_MESSAGE:
+      readPacketToSendMessageOfClient(sd, packet);
+      break;
+      case OP_EXIT:
+      readPacketToExitOfClient(sd, packet);
+      break;
+    }
+  } else {
+    checkErrorOfServer(error);
+  }
+}
+
 void initMasterSocket() {
   int opt = 1, error;
 
@@ -106,15 +187,10 @@ void loop() {
           clientListSockets[i] = 0;
           break;
         } else { // Broadcast
-          printf("Broadcast\n");
+          printf("Broadcast %d\n", numberOfBytes);
           masterBuffer[numberOfBytes] = 0;
-          showHostInfos(sd);
           printf("Received: '%s'\n", masterBuffer);
-          for (int j = 0; j < limitOfClients; j++) {
-            int sdt = clientListSockets[j];
-            if (sdt != 0 && sdt != sd)
-              send(sdt, masterBuffer, numberOfBytes, 0);
-          }
+          readPacketOfClient(sd, masterBuffer);
           break;
         }
       }
