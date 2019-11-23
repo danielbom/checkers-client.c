@@ -40,7 +40,7 @@ char deadBlacks, deadWhites;  // Dead pieces counters
 
 char currentPlayer = 'B'; // ["[B]lack", "[W]hite"]
 
-char *MOVE_COLOR = REVERSE_COLOR;
+char *MOVE_COLOR = BG_YELLOW_COLOR;
 int SLEEP_TIME = 1; // Seconds
 
 int countMoves = 0;
@@ -205,7 +205,7 @@ void printDiv() {
 void drawBoardOnlyColors() {
   int i, j, k, id, player;
   for (i = 0; i < 8; i++) {
-    for (k = -1; k < 3; k++) {
+    for (k = 0; k < 2; k++) {
       if (k == 1) {
         printf(" %d  ", i);
       } else {
@@ -215,24 +215,27 @@ void drawBoardOnlyColors() {
         if ((i % 2 == 0 && j % 2 == 1) || (i % 2 == 1 && j % 2 == 0)) {
           printf("%s", BG_BLACK_COLOR);
         } else {
-          printf("%s", BG_CYAN_COLOR);
+          printf("%s", BG_WHITE_COLOR);
         }
+
+        if ((px == i && py == j) || (mx == i && my == j))
+          printf("%s", MOVE_COLOR);
+
         if (board[i][j] == 0) {
-          printf("       ");
+          printf("     ");
         } else {
           id = board[i][j] - 1;
           player = pieces[id].player;
-          if (player == 'B')
-            printf("%s", BOLD_MAGENTA_COLOR);
+          printf("%s", player == 'B' ? BOLD_BLUE_COLOR : BOLD_GREEN_COLOR);
 
           if (pieces[id].lady) {
-            if (k == 0)      printf(" █   █ ");
-            else if (k == 1) printf(" █████ ");
-            else             printf("       ");
+            if (k == 0)      printf(" █ █ ");
+            else if (k == 1) printf(" ███ ");
+            else             printf("     ");
           } else {
-            if (k == 0)      printf(" █████ ");
-            else if (k == 1) printf(" █████ ");
-            else             printf("       ");
+            if (k == 0)      printf(" ███ ");
+            else if (k == 1) printf(" ███ ");
+            else             printf("     ");
           }
         }
         printf("%s", RESET_COLOR);
