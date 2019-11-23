@@ -7,22 +7,6 @@
 #include "./server/client.c"
 
 // ------------------- //
-//   Network Controll  //
-// ------------------- //
-void createGameMenu() {
-  pthread_t thread;
-  
-  initClientSocket();
-  int error = createRoom("daniel", "pass", "room", 2);
-
-  if (!error) {
-    senderRunner(&thread);
-    receiverRunner(&thread, NULL);
-    while (runningClient) {}
-  }
-}
-
-// ------------------- //
 //       Debugger      //
 // ------------------- //
 int debug(char* fmt, ...) {
@@ -73,6 +57,45 @@ int px, py, mx, my;
 char buffer[256] = {0};
 int shift;
 
+int isLocalGame = 1;
+
+// ------------------- //
+//   Network Controll  //
+// ------------------- //
+void createGameMenu() {
+  pthread_t thread;
+  
+  setUsername("daniel");
+  setPassword("pass");
+  setRoomname("room");
+  initClientSocket();
+  int error = createRoom(2);
+
+  isLocalGame = 0;
+  if (!error) {
+    senderRunner(&thread);
+    receiverRunner(&thread, NULL);
+    while (ClientProps.isRunning) {}
+  }
+}
+
+void accessGameMenu() {
+  pthread_t thread;
+  
+  setUsername("mara");
+  setPassword("pass");
+  setRoomname("room");
+  initClientSocket();
+  int error = accessRoom();
+  
+  isLocalGame = 0;
+  if (!error) {
+    senderRunner(&thread);
+    receiverRunner(&thread, NULL);
+    while (ClientProps.isRunning) {}
+  }
+}
+
 // ------------------- //
 //        Assets       //
 // ------------------- //
@@ -115,8 +138,8 @@ int isDigit(char ch) {
 }
 
 void fillBuffer() {
-  setbuf(stdin , NULL);
-  scanf("%[^\n]", buffer);
+  // setbuf(stdin , NULL);
+  scanf(" %[^\n]", buffer);
 }
 
 void unimplemented(char* function) {
@@ -266,7 +289,7 @@ void drawBoardOnlyColors() {
   }
   printf("\n    ");
   for (i = 0; i < 8; i++) {
-    printf("   %c   ", '0' + i);
+    printf("  %c  ", '0' + i);
   }
   printf("\n");
 
@@ -632,7 +655,7 @@ void instructionsMenuOption() {
   unimplemented("Instructions");
 }
 void accessGameMenuOption() {
-  unimplemented("Access Game");
+  accessGameMenu();
 }
 void createGameMenuOption() {
   createGameMenu();
