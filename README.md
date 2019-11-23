@@ -3,7 +3,10 @@
 
 Basic checkers game write in C.
 
-- 04/11/2019: Estimated time spend: 
+- 23/11/2019
+  * Separete server base into another repository.
+
+- 04/11/2019 
   * Update base of server and client.
 
 - 01/11/2019: Estimated time spend: 2 hours. (not continuos)

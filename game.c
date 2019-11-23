@@ -4,6 +4,27 @@
 #include <string.h>   // strncmp
 #include "colorize.c"
 
+#include "./server/client.c"
+
+// ------------------- //
+//   Network Controll  //
+// ------------------- //
+void createGameMenu() {
+  pthread_t thread;
+  
+  initClientSocket();
+  int error = createRoom("daniel", "pass", "room", 2);
+
+  if (!error) {
+    senderRunner(&thread);
+    receiverRunner(&thread, NULL);
+    while (runningClient) {}
+  }
+}
+
+// ------------------- //
+//       Debugger      //
+// ------------------- //
 int debug(char* fmt, ...) {
   int res = 0;
 #if DEBUG
@@ -26,14 +47,14 @@ int debug(char* fmt, ...) {
   return res;
 }
 
+// ------------------- //
+//      Controll       //
+// ------------------- //
 typedef struct piece {
   char player;  // ["[B]lack", "[W]hite"]
   char lady;    // ["[T]rue",  "[F]alse"]
 } Piece;
 
-// ------------------- //
-//      Controll       //
-// ------------------- //
 char board[8][8];
 Piece pieces[24];
 char deadBlacks, deadWhites;  // Dead pieces counters
@@ -614,7 +635,7 @@ void accessGameMenuOption() {
   unimplemented("Access Game");
 }
 void createGameMenuOption() {
-  unimplemented("Create Game");
+  createGameMenu();
 }
 void playLocalMenuOption() {
   playLocalGame();
