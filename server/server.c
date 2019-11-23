@@ -37,6 +37,7 @@ void readPacketToListRoomsOfClient(int sd, char* packet) {
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
   int op = ByteBufferGetInt(packet, &shift);
+  int IDprotocol = ByteBufferGetInt(packet, &shift);
   printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
   printf("\n");
 }
@@ -45,6 +46,7 @@ void readPacketToConnectOfClient(int sd, char* packet) {
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
   int op = ByteBufferGetInt(packet, &shift);
+  int IDprotocol = ByteBufferGetInt(packet, &shift);
   char* username = ByteBufferGetString(packet, &shift);
   char* password = ByteBufferGetString(packet, &shift);
   char* roomName = ByteBufferGetString(packet, &shift);
@@ -56,6 +58,7 @@ void readPacketToCreateRoomOfClient(int sd, char* packet) {
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
   int op = ByteBufferGetInt(packet, &shift);
+  int IDprotocol = ByteBufferGetInt(packet, &shift);
   char* username = ByteBufferGetString(packet, &shift);
   char* password = ByteBufferGetString(packet, &shift);
   char* roomName = ByteBufferGetString(packet, &shift);
@@ -68,6 +71,7 @@ void readPacketToSendMessageOfClient(int sd, char* packet) {
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
   int op = ByteBufferGetInt(packet, &shift);
+  int IDprotocol = ByteBufferGetInt(packet, &shift);
   char* username = ByteBufferGetString(packet, &shift);
   char* roomName = ByteBufferGetString(packet, &shift);
   char* message = ByteBufferGetString(packet, &shift);
@@ -79,13 +83,18 @@ void readPacketToExitOfClient(int sd, char* packet) {
   int error = ByteBufferGetInt(packet, &shift);
   int type = ByteBufferGetInt(packet, &shift);
   int op = ByteBufferGetInt(packet, &shift);
+  int IDprotocol = ByteBufferGetInt(packet, &shift);
   char* username = ByteBufferGetString(packet, &shift);
   char* password = ByteBufferGetString(packet, &shift);
   printf("Error: '%d', Type: '%d', Operation: '%d'", error, type, op);
   printf(", Username: '%s', Password: '%s'\n", username, password);
 }
-void readPacketOfClient(int sd, char* packet) {
+void readPacketOfClient(int sd, char* packet, int size) {
   showHostInfos(sd);
+  if (size < (4 * sizeof(int))) {
+    printf("LOG: Malformed packet\n");
+    return;
+  }
   int error = getErrorOfPacket(packet);
   if (!error) {
     int op = getOperationOfPacket(packet);
@@ -180,17 +189,17 @@ void loop() {
     for (i = 0; i < limitOfClients; i++) {
       int sd = clientListSockets[i];
       if (FD_ISSET(sd, &systemSetDescriptor)) {
-        int numberOfBytes = read(sd, masterBuffer, BUFFER_SERVER_SIZE);
-        if (numberOfBytes == 0) {
+        int size = read(sd, masterBuffer, BUFFER_SERVER_SIZE);
+        if (size == 0) {
           printf("Host disconnected\n");
           showHostInfos(sd);
           clientListSockets[i] = 0;
           break;
         } else { // Broadcast
-          printf("Broadcast %d\n", numberOfBytes);
-          masterBuffer[numberOfBytes] = 0;
+          printf("Broadcast %d\n", size);
+          masterBuffer[size] = 0;
           printf("Received: '%s'\n", masterBuffer);
-          readPacketOfClient(sd, masterBuffer);
+          readPacketOfClient(sd, masterBuffer, size);
           break;
         }
       }

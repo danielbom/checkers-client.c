@@ -33,7 +33,7 @@ Tecnologia: C
 |                     ID de erro                    |        4        |
 |                  Cliente/Servidor                 |        4        |
 |                      Operação                     |        4        |
-|                      Tamanho                      |        4        |
+|                  ID do protocolo                  |        4        |
 |                  Nome do usuário                  |        64       |
 |                       Senha                       |        64       |
 |                    Nome da sala                   |        64       |
@@ -45,7 +45,7 @@ Tecnologia: C
 |                     ID de erro                    |        4        |
 |                  Cliente/Servidor                 |        4        |
 |                      Operação                     |        4        |
-|                      Tamanho                      |        4        |
+|                  ID do protocolo                  |        4        |
 |                  Nome do usuário                  |        64       |
 |                       Senha                       |        64       |
 |                    Nome da sala                   |        64       |
@@ -56,7 +56,7 @@ Tecnologia: C
 |                     ID de erro                    |        4        |
 |                  Cliente/Servidor                 |        4        |
 |                      Operação                     |        4        |
-|                      Tamanho                      |        4        |
+|                  ID do protocolo                  |        4        |
 |                  Nome do usuário                  |        64       |
 |                    Nome da sala                   |        64       |
 |                      Mensagem                     |       256       |
@@ -67,6 +67,7 @@ Tecnologia: C
 |                     ID de erro                    |        4        |
 |                  Cliente/Servidor                 |        4        |
 |                      Operação                     |        4        |
+|                  ID do protocolo                  |        4        |
 
 ## Game
 

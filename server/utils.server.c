@@ -23,6 +23,8 @@ enum {
   TYPE_SERVER = 2
 };
 
+int PROTOCOL_ID = 28456;
+
 // Gets
 int getErrorOfPacket(char* packet) {
   return ByteBufferGetIntAbs(packet, 0);
@@ -32,6 +34,9 @@ int getTypeOfPacket(char* packet) {
 }
 int getOperationOfPacket(char* packet) {
   return ByteBufferGetIntAbs(packet, sizeof(int) * 2);
+}
+int getIDProtoocolPacket(char* packet) {
+  return ByteBufferGetIntAbs(packet, sizeof(int) * 3);
 }
 
 // Sets
@@ -43,6 +48,9 @@ void setTypeOnPacket(char* packet, int value) {
 }
 void setOperationOnPacket(char* packet, int value) {
   ByteBufferPutIntAbs(packet, sizeof(int) * 2, value);
+}
+void setIDProtocolPacket(char* packet) {
+  ByteBufferPutIntAbs(packet, sizeof(int) * 3, PROTOCOL_ID);
 }
 
 // Utils
