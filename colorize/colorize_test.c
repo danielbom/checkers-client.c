@@ -1,4 +1,4 @@
-#include "colorize.c"
+#include "./colorize.c"
 #include <stdio.h>
 
 int main() {
