@@ -98,11 +98,9 @@ void ConsoleFillInput(char ch) {
       }
     } else {
       // arrow key is pressed
-      if (ConsoleProps.callback_arrow_key_listener) {
+      if (ConsoleProps.callback_arrow_key_listener)
         ConsoleProps.callback_arrow_key_listener(ch);
-      } else {
-        printf("\nspecial %d\n", ch);
-      }
+
       ConsoleProps.special_1 = ConsoleProps.special_2 = 0;
       ConsoleProps.special = 1;
     }
@@ -114,7 +112,6 @@ static void *_ConsoleRun(void *args) {
   
   while (1) {
     ch = getchar();
-    ConsoleFillInput(ch);
 
     if (ch == '\n') {
       if (ConsoleProps.callback_consumer)
@@ -124,6 +121,8 @@ static void *_ConsoleRun(void *args) {
       ConsoleProps.filled = ConsoleProps.cursor = 0;
       ConsoleProps.input[0] = 0;
     } else {
+      ConsoleFillInput(ch);
+
       if (!ConsoleProps.special) {
         if (ConsoleProps.callback_keyboard_listener)
           ConsoleProps.callback_keyboard_listener(ch);
