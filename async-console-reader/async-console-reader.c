@@ -27,13 +27,14 @@ static struct {
 
   int filled, cursor;
   int special_1, special_2, special;
+  int wait_key, wait_consume;
 
   void (*callback_arrow_key_listener)(char);
   void (*callback_keyboard_listener)(char);
   void (*callback_consumer)(char*);
   void (*callback_listener)(char*);
   void (*callback_exit)();
-} ConsoleProps;
+} ConsoleProps = {0};
 
 void ConsoleSignalCallback(int sig);
 
@@ -48,6 +49,15 @@ void ConsoleSetConsumer(void (*callback)(char*)) {
 }
 void ConsoleSetListener(void (*callback)(char*)) {
   ConsoleProps.callback_listener = callback;
+}
+
+void ConsoleWaitKey() {
+  while (!ConsoleProps.wait_key);
+  ConsoleProps.wait_key = 0;
+}
+void ConsoleWaitConsume() {
+  while (!ConsoleProps.wait_consume);
+  ConsoleProps.wait_consume = 0;
 }
 
 void ConsolePutInput(char ch) {
@@ -110,6 +120,7 @@ static void *_ConsoleRun(void *args) {
       if (ConsoleProps.callback_consumer)
         ConsoleProps.callback_consumer(ConsoleProps.input);
 
+      ConsoleProps.wait_consume = 1;
       ConsoleProps.filled = ConsoleProps.cursor = 0;
       ConsoleProps.input[0] = 0;
     } else {
@@ -119,6 +130,8 @@ static void *_ConsoleRun(void *args) {
 
         if (ConsoleProps.callback_listener)
           ConsoleProps.callback_listener(ConsoleProps.input);
+        
+        ConsoleProps.wait_key = 1;
       }
     }
   }
@@ -132,12 +145,6 @@ void ConsoleStart(pthread_t* thread) {
 }
 
 void ConsoleInit() {
-  ConsoleProps.filled = 0;
-  ConsoleProps.cursor = 0;
-  ConsoleProps.special_1 = 0;
-  ConsoleProps.special_2 = 0;
-  ConsoleProps.special = 0;
-
   tcgetattr(STDIN_FILENO, &ConsoleProps.oldt);
   ConsoleProps.newt = ConsoleProps.oldt;
   ConsoleProps.newt.c_lflag &= ~(ICANON);
