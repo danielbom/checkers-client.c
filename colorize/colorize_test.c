@@ -46,6 +46,5 @@ int main() {
   printf("%s%s\n", BG_WHITE_COLOR, phrase);
   printf("%s%s\n", RESET_COLOR, phrase);
 
-
   return 0;
 }

@@ -2,8 +2,8 @@
 #include <unistd.h>   // sleep(int)
 #include <stdarg.h>   // va_list
 #include <string.h>   // strncmp
-#include "colorize.c"
 
+#include "colorize/colorize.c"
 #include "./server/client.c"
 #include "./async-console-reader/async-console-reader.c"
 
@@ -387,6 +387,7 @@ void GameDrawBoardWithCharacteres() {
   }
   printf("\n");
 }
+
 void GameDrawBoard() {
   GameDrawBoardOnlyColors();
   if (px != -1) {
