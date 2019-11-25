@@ -5,6 +5,7 @@
 #include "colorize.c"
 
 #include "./server/client.c"
+#include "./async-console-reader/async-console-reader.c"
 
 // ------------------- //
 //       Debugger      //
@@ -29,71 +30,6 @@ int debug(char* fmt, ...) {
 
 #endif
   return res;
-}
-
-// ------------------- //
-//      Controll       //
-// ------------------- //
-typedef struct piece {
-  char player;  // ["[B]lack", "[W]hite"]
-  char lady;    // ["[T]rue",  "[F]alse"]
-} Piece;
-
-char board[8][8];
-Piece pieces[24];
-char deadBlacks, deadWhites;  // Dead pieces counters
-
-char currentPlayer = 'B'; // ["[B]lack", "[W]hite"]
-
-char *MOVE_COLOR = BG_YELLOW_COLOR;
-int SLEEP_TIME = 1; // Seconds
-
-int countMoves = 0;
-int LIMIT_MOVES = 80;
-
-char error;
-
-int px, py, mx, my;
-char buffer[256] = {0};
-int shift;
-
-int isLocalGame = 1;
-
-// ------------------- //
-//   Network Controll  //
-// ------------------- //
-void createGameMenu() {
-  pthread_t thread;
-  
-  setUsername("daniel");
-  setPassword("pass");
-  setRoomname("room");
-  initClientSocket();
-  int error = createRoom(2);
-
-  isLocalGame = 0;
-  if (!error) {
-    senderRunner(&thread);
-    receiverRunner(&thread, NULL);
-    while (ClientProps.isRunning) {}
-  }
-}
-
-void accessGameMenu() {
-  pthread_t thread;
-  
-  setUsername("mara");
-  setPassword("pass");
-  setRoomname("room");
-  initClientSocket();
-  int error = accessRoom();
-  
-  isLocalGame = 0;
-  if (!error) {
-    senderRunner(&thread);
-    receiverRunner(&thread, NULL);
-    while (ClientProps.isRunning) {}
-  }
 }
 
 // ------------------- //
@@ -131,15 +67,10 @@ char emptyEven[3][7] = {
 };
 
 // ------------------- //
-//    General Utils    //
+//        Utils        //
 // ------------------- //
 int isDigit(char ch) {
   return '0' <= ch && ch <= '9';
-}
-
-void fillBuffer() {
-  // setbuf(stdin , NULL);
-  scanf(" %[^\n]", buffer);
 }
 
 void unimplemented(char* function) {
@@ -148,30 +79,137 @@ void unimplemented(char* function) {
 }
 
 // ------------------- //
-//     Utils Game      //
+//      Controll       //
+// ------------------- //
+typedef struct piece {
+  char player;  // ["[B]lack", "[W]hite"]
+  char lady;    // ["[T]rue",  "[F]alse"]
+} Piece;
+
+char board[8][8];
+Piece pieces[24];
+char deadBlacks, deadWhites;  // Dead pieces counters
+
+char currentPlayer = 'B'; // ["[B]lack", "[W]hite"]
+
+char *MOVE_COLOR = BG_YELLOW_COLOR;
+int SLEEP_TIME = 1; // Seconds
+
+int countMoves = 0;
+int LIMIT_MOVES = 80;
+
+char error;
+
+int px, py, mx, my;
+char buffer[256] = {0};
+int shift;
+
+int isLocalGame = 1;
+int isConsoleEnable = 1;
+char selfPlayer;
+
+// ------------------- //
+//       Console       //
+// ------------------- //
+void GameConsumerHandle(char* input) {
+  // printf(" Consuming %s\n", input);
+  if (isLocalGame) {
+    strcpy(buffer, input);
+  } else {
+    ClientSendMessage(input);
+  }
+}
+
+void GameConfigConsole() {
+  pthread_t thread;
+  ConsoleSetConsumer(GameConsumerHandle);
+  ConsoleStart(&thread);
+}
+
+// ------------------- //
+//       Network       //
+// ------------------- //
+void GameCreateGameMenu() {
+  pthread_t thread;
+  
+  ClientSetUsername("daniel");
+  ClientSetPassword("pass");
+  ClientSetRoomName("room");
+  ClientInit();
+  int error = ClientCreateRoom(2);
+
+  isLocalGame = 0;
+  selfPlayer = 'B';
+  if (!error) {
+    ClientSenderRun(&thread);
+    ClientReceiverRun(&thread, NULL);
+  }
+}
+
+void GameAccessGameMenu() {
+  pthread_t thread;
+  
+  ClientSetUsername("mara");
+  ClientSetPassword("pass");
+  ClientSetRoomName("room");
+  ClientInit();
+  int error = ClientAccessRoom();
+  
+  isLocalGame = 0;
+  selfPlayer = 'W';
+  if (!error) {
+    ClientSenderRun(&thread);
+    ClientReceiverRun(&thread, NULL);
+    while (ClientProps.isRunning) {}
+  }
+}
+
+// ------------------- //
+//     Persistence     //
+// ------------------- //
+void GameSaveCurrentMove() {
+  char filename[] = "moves.txt";
+  FILE* file = fopen(filename, countMoves == 1 ? "w+" : "a+");
+  if (file == NULL) {
+    debug("Não foi possível abrir o arquivo %s\n", filename);
+  }
+
+  fprintf(file, "%s\n", buffer);
+
+  fclose(file);
+}
+
+// ------------------- //
+//     Game Utils      //
 // ------------------- //
 char BLACK[] = "Black";
 char WHITE[] = "White";
-char* getCurrentPlayer() {
+char* GameGetCurrentPlayer() {
   return currentPlayer == 'B' ? BLACK : WHITE;
 }
 
-void checkLady(int mx, int my) {
+void GameFillBuffer() {
+  // setbuf(stdin , NULL);
+  scanf(" %[^\n]", buffer);
+  // ConsoleWaitConsume();
+}
+
+void GameCheckLady(int mx, int my) {
   debug("Check Lady Move(%d,%d)\n", mx, my);
   if (mx == 0 || mx == 7) {
     pieces[board[mx][my] - 1].lady = 1;
   }
 }
 
-char isBounded() {
+char GameIsBounded() {
   return px >= 0 && py >= 0 && mx >= 0 && my >= 0 && px < 8 && py < 8 && mx < 8 && my < 8;
 }
 
-void swapPlayer() {
+void GameSwapPlayer() {
   currentPlayer = currentPlayer == 'B' ? 'W' : 'B';
 }
 
-int getCoordinate() {
+int GameGetCoordinate() {
   for (; buffer[shift] && !isDigit(buffer[shift]); shift++);  // skip non digit
   int x = isDigit(buffer[shift]) ? buffer[shift++] - '0' : -1;   // consume 1 digit
   for (; buffer[shift] && !isDigit(buffer[shift]); shift++);  // skip non digit
@@ -189,24 +227,41 @@ int getCoordinate() {
 }
 
 // ------------------- //
-//     Persistence     //
-// ------------------- //
-void saveCurrentMove() {
-  char filename[] = "moves.txt";
-  FILE* file = fopen(filename, countMoves == 1 ? "w+" : "a+");
-  if (file == NULL) {
-    debug("Não foi possível abrir o arquivo %s\n", filename);
-  }
-
-  fprintf(file, "%s\n", buffer);
-
-  fclose(file);
-}
-
-// ------------------- //
 //      Printers       //
 // ------------------- //
-void printState() {
+void GamePrintErrors() {
+  if (error >= 1)
+    debug("ERROR: Piece(%d,%d) Move(%d,%d) Player(%s) CurrentMove(%d)\n\t", px, py, mx, my, GameGetCurrentPlayer(), countMoves);
+
+  switch (error) {
+    case 1:
+      debug("Message: Move out of the bound\n");
+      break;
+    case 2:
+      debug("Message: Illegal simple move\n");
+      break;
+    case 3:
+      debug("Message: Illegal capture of own piece\n");
+      break;
+    case 4:
+      debug("Message: Illegal move\n");
+      break;
+    case 5:
+      debug("Message: Picked piece of another player\n");
+      break;
+    case 6:
+      debug("Message: Picked empty piece\n");
+      break;
+    case 7:
+      debug("Message: Illegal lady capture\n");
+      break;
+    case 8:
+      debug("Message: Malformad input\n");
+  }
+  error = 0;
+}
+
+void GamePrintState() {
   int i, j;
   debug("==> Pieces: ");
   for (i = 0; i < 24; i++) debug("%c ", pieces[i].player);
@@ -238,15 +293,13 @@ void printState() {
   debug("White deads %d\n", deadWhites);
 }
 
-void printDiv() {
+void GamePrintDiv() {
   printf(" ---");
-  for (int i = 0; i < 8; i++) {
-    printf("-------");
-  }
+  for (int i = 0; i < 8; i++) printf("-------");
   printf("\n");
 }
 
-void drawBoardOnlyColors() {
+void GameDrawBoardOnlyColors() {
   int i, j, k, id, player;
   for (i = 0; i < 8; i++) {
     for (k = 0; k < 2; k++) {
@@ -292,18 +345,11 @@ void drawBoardOnlyColors() {
     printf("  %c  ", '0' + i);
   }
   printf("\n");
-
-  if (px != -1) {
-    printf("\n");
-    printf("[%d] Last move (%d,%d) -> (%d,%d) [%s]\n", countMoves - 1, px, py, mx, my, getCurrentPlayer());
-  }
-
-  printState();
 }
 
-void drawBoardWithCharacteres() {
+void GameDrawBoardWithCharacteres() {
   int i, j, k, id, player;
-  printDiv();
+  GamePrintDiv();
   for (i = 0; i < 8; i++) {
     for (k = 0; k < 3; k++) {
       if (k == 1) {
@@ -333,27 +379,25 @@ void drawBoardWithCharacteres() {
       }
       printf("\n");
     }
-    printDiv();
+    GamePrintDiv();
   }
   printf("   |");
   for (i = 0; i < 8; i++) {
     printf("   %c  |", '0' + i);
   }
   printf("\n");
-
+}
+void GameDrawBoard() {
+  GameDrawBoardOnlyColors();
   if (px != -1) {
     printf("\n");
-    printf("[%d] Last move (%d,%d) -> (%d,%d) [%s]\n", countMoves - 1, px, py, mx, my, getCurrentPlayer());
+    printf("[%d] Last move (%d,%d) -> (%d,%d) [%s]\n", countMoves - 1, px, py, mx, my, GameGetCurrentPlayer());
   }
 
-  printState();
+  GamePrintState();
 }
 
-void drawBoard() {
-  drawBoardOnlyColors();
-}
-
-void drawResult() {
+void GameDrawResult() {
   printf("\n\n");
   if (deadWhites < deadBlacks) {
     printf("%s", BOLD_GREEN_COLOR);
@@ -379,42 +423,10 @@ void drawResult() {
   printf("%s", RESET_COLOR);
 }
 
-void printErrors() {
-  if (error >= 1)
-    debug("ERROR: Piece(%d,%d) Move(%d,%d) Player(%s) CurrentMove(%d)\n\t", px, py, mx, my, getCurrentPlayer(), countMoves);
-
-  switch (error) {
-    case 1:
-      debug("Message: Move out of the bound\n");
-      break;
-    case 2:
-      debug("Message: Illegal simple move\n");
-      break;
-    case 3:
-      debug("Message: Illegal capture of own piece\n");
-      break;
-    case 4:
-      debug("Message: Illegal move\n");
-      break;
-    case 5:
-      debug("Message: Picked piece of another player\n");
-      break;
-    case 6:
-      debug("Message: Picked empty piece\n");
-      break;
-    case 7:
-      debug("Message: Illegal lady capture\n");
-      break;
-    case 8:
-      debug("Message: Malformad input\n");
-  }
-  error = 0;
-}
-
 // ------------------- //
 //         Game        //
 // ------------------- //
-void init() {
+void GameInit() {
   int i, j;
   for (i = 0; i < 8; i++) {
     for (j = 0; j < 8; j++) {
@@ -441,7 +453,7 @@ void init() {
   px = py = mx = my = -1;
 }
 
-char trySimpleMove(char up) {
+char GameTrySimpleMove(char up) {
   char pn = up ? px - 1 : px + 1;
   if (pn == mx) {
     char id = board[px][py];
@@ -456,7 +468,7 @@ char trySimpleMove(char up) {
   return 1;
 }
 
-char tryCapture(char up) {
+char GameTryCapture(char up) {
   char id = board[px][py];
   char p1 = up ? px - 1 : px + 1;
   char p2 = up ? px - 2 : px + 2;
@@ -490,17 +502,17 @@ char tryCapture(char up) {
   return 1;
 }
 
-char tryMultipleCapture(char up) {
-  if (tryCapture(up)) return 1;
-  debug("LOG: Capture [%s]\n", getCurrentPlayer());
+char GameTryMultipleCapture(char up) {
+  if (GameTryCapture(up)) return 1;
+  debug("LOG: Capture [%s]\n", GameGetCurrentPlayer());
 
-  while (!getCoordinate()) {
-    drawBoard();
+  while (!GameGetCoordinate()) {
+    GameDrawBoard();
     sleep(SLEEP_TIME);
     printf("\n\n");
-    debug("LOG: Capture [%s]\n", getCurrentPlayer());
-    if (isBounded()) {
-      if (!tryCapture(1) || !tryCapture(0)) {
+    debug("LOG: Capture [%s]\n", GameGetCurrentPlayer());
+    if (GameIsBounded()) {
+      if (!GameTryCapture(1) || !GameTryCapture(0)) {
         countMoves++;
         error = 0;
       } else {
@@ -515,19 +527,19 @@ char tryMultipleCapture(char up) {
   return 0;
 }
 
-char tryMove(char up) {
+char GameTryMove(char up) {
   if (board[mx][my] != 0) {
     error = 4;
     return 1;
   }
   
-  if (!trySimpleMove(up)) {
+  if (!GameTrySimpleMove(up)) {
       debug("LOG: Simple Move\n");
       return 0;
   }
 
-  if (!tryMultipleCapture(up)) {
-    debug("LOG: Capture [%s]\n", getCurrentPlayer());
+  if (!GameTryMultipleCapture(up)) {
+    debug("LOG: Capture [%s]\n", GameGetCurrentPlayer());
     return 0;
   }
   
@@ -538,11 +550,11 @@ char tryMove(char up) {
 // ------------------- //
 //         Loop        //
 // ------------------- //
-char move() {
+char GameMove() {
   if (error) return 1;
   debug("LOG: Piece [%d, %d]\n", px, py);
   debug("LOG: Move  [%d, %d]\n", mx, my);
-  if (isBounded()) {
+  if (GameIsBounded()) {
     char id = board[px][py];
     if (id == 0) {
       error = 6;
@@ -550,15 +562,15 @@ char move() {
     } else {
       if (currentPlayer == pieces[id - 1].player) {
         if (pieces[id - 1].lady) {
-          if (px < mx && !tryMove(0)) return 0;
-          if (px > mx && !tryMove(1)) return 0;
+          if (px < mx && !GameTryMove(0)) return 0;
+          if (px > mx && !GameTryMove(1)) return 0;
           error = 7;
           return 1;
         } else {
           if (currentPlayer == 'B') {
-            if (px < mx && !tryMove(0)) return 0;
+            if (px < mx && !GameTryMove(0)) return 0;
           } else {
-            if (px > mx && !tryMove(1)) return 0;
+            if (px > mx && !GameTryMove(1)) return 0;
           }
         }
         error = 4;
@@ -574,17 +586,17 @@ char move() {
   return 0;
 }
 
-int getCommand() {
+int GameGetCommand() {
   if (strncmp(buffer, "give up", 7) == 0) {
-    printf("\nPlayer '%s' give up...", getCurrentPlayer());
+    printf("\nPlayer '%s' give up...", GameGetCurrentPlayer());
     if (currentPlayer == 'B') deadBlacks = 12;
     else deadWhites = 12;
-    saveCurrentMove();
+    GameSaveCurrentMove();
     return 0;
   }
   if (strncmp(buffer, "show", 4) == 0) {
     printf("\n");
-    drawBoard();
+    GameDrawBoard();
     return 0;
   }
   if (strncmp(buffer, "help", 4) == 0) {
@@ -598,13 +610,13 @@ int getCommand() {
   return 1;
 }
 
-void getInput() {
-  printf("\n[%d] Player [ %s ]\n", countMoves, getCurrentPlayer());
+void GameGetInput() {
+  printf("\n[%d] Player [ %s ]\n", countMoves, GameGetCurrentPlayer());
   printf("Move pxpy mxmy ...: ");
-  fillBuffer();
+  GameFillBuffer();
   if (buffer[0] != '/') {
-    if (getCoordinate() || getCoordinate()) {
-      if (getCommand())
+    if (GameGetCoordinate() || GameGetCoordinate()) {
+      if (GameGetCommand())
         error = 8;
     }
   } else {
@@ -613,61 +625,61 @@ void getInput() {
   printf("\n");
 }
 
-void update() {
+void GameUpdate() {
   shift = 0;    // Flush reader
   if (error) return;
 
   countMoves++;
-  saveCurrentMove();
-  swapPlayer();
-  checkLady(mx, my);
-  drawBoard();
+  GameSaveCurrentMove();
+  GameSwapPlayer();
+  GameCheckLady(mx, my);
+  GameDrawBoard();
 }
 
-void play() {
-  getInput();
-  move();
-  update();
-  printErrors();
+void GamePlay() {
+  GameGetInput();
+  GameMove();
+  GameUpdate();
+  GamePrintErrors();
   sleep(SLEEP_TIME);
 }
 
-void playLocalGame() {
-  init();
-  drawBoard();
+void GamePlayLocal() {
+  GameInit();
+  GameDrawBoard();
   
   while (deadBlacks != 12 && deadWhites != 12 && countMoves <= LIMIT_MOVES)
-    play();
+    GamePlay();
   
-  drawResult();
+  GameDrawResult();
 }
 
 // ------------------- //
 //         Menu        //
 // ------------------- //
-void aboutMenuOption() {
+void GameMenuOptionAbout() {
   unimplemented("About");
 }
-void settingsMenuOption() {
+void GameMenuOptionSettings() {
   unimplemented("Settings");
 }
-void instructionsMenuOption() {
+void GameMenuOptionInstructions() {
   unimplemented("Instructions");
 }
-void accessGameMenuOption() {
-  accessGameMenu();
+void GameMenuOptionAccessGame() {
+  GameAccessGameMenu();
 }
-void createGameMenuOption() {
-  createGameMenu();
+void GameMenuOptionCreateGame() {
+  GameCreateGameMenu();
 }
-void playLocalMenuOption() {
-  playLocalGame();
+void GameMenuOptionPlayLocal() {
+  GamePlayLocal();
 }
-void exitMenuOption() {
+void GameMenuOptionExit() {
   unimplemented("Exit");
 }
 
-void logo() {
+void GameLogo() {
   char* color1 = BOLD_BLUE_COLOR;
   char* color2 = BOLD_GREEN_COLOR;
   printf("%s ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗███████╗██████╗ ███████╗\n", color1);
@@ -679,7 +691,7 @@ void logo() {
   printf("%s                                                                \n", RESET_COLOR);
 }
 
-void menu() {
+void GameMenu() {
   printf("1 -       Play local      - 1\n");
   printf("2 -  Create game (online) - 2\n");
   printf("3 -  Access game (online) - 3\n");
@@ -692,25 +704,26 @@ void menu() {
 
   while (1) {
     printf(">>> ");
-    fillBuffer();
+    GameFillBuffer();
     sscanf(buffer, "%d", &option);
-    printf("%s\n", buffer);
     if (option >= 0 && option <= 6) break;
     printf("Invalid option! Try again...\n");
   }
 
   switch(option) {
-    case 0: exitMenuOption(); break;
-    case 1: playLocalMenuOption(); break;
-    case 2: createGameMenuOption(); break;
-    case 3: accessGameMenuOption(); break;
-    case 4: instructionsMenuOption(); break;
-    case 5: settingsMenuOption(); break;
-    case 6: aboutMenuOption(); break;
+    case 0: GameMenuOptionExit(); break;
+    case 1: GameMenuOptionPlayLocal(); break;
+    case 2: GameMenuOptionCreateGame(); break;
+    case 3: GameMenuOptionAccessGame(); break;
+    case 4: GameMenuOptionInstructions(); break;
+    case 5: GameMenuOptionSettings(); break;
+    case 6: GameMenuOptionAbout(); break;
   }
 }
 
 int main(int argc, char const *argv[]) {
-  menu();
+  // GameConfigConsole();
+  GameLogo();
+  GameMenu();
   return 0;
 }
