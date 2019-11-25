@@ -29,10 +29,10 @@ Basic checkers game write in C.
 
 
 ### **Compile and run**
-> gcc game.c -o game && ./game
+> gcc game.c -o game -lpthread && ./game
 
 ### **Compile and run [DEBUG mode]**
-> gcc game.c -o game -D DEBUG && ./game
+> gcc game.c -o game -D DEBUG -lpthread && ./game
 
 ### **Observations***
 > **!Warning!**: Files "game.v[*].c" can has errors.  
