@@ -142,7 +142,7 @@ void GameCreateGameMenu() {
   selfPlayer = 'B';
   if (!error) {
     ClientSenderRun(&thread);
-    ClientReceiverRun(&thread, NULL);
+    ClientReceiverRun(&thread);
   }
 }
 
@@ -159,7 +159,7 @@ void GameAccessGameMenu() {
   selfPlayer = 'W';
   if (!error) {
     ClientSenderRun(&thread);
-    ClientReceiverRun(&thread, NULL);
+    ClientReceiverRun(&thread);
     while (ClientProps.isRunning) {}
   }
 }
